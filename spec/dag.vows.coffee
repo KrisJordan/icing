@@ -1,9 +1,9 @@
 vows        = require 'vows'
 assert      = require 'assert'
-piping      = require '../src/piping'
+dag      = require '../src/dag'
 _           = require 'underscore'
 
-{ Node, Arc, List, NodeList, ArcList, Graph } = piping
+{ Node, Arc, List, NodeList, ArcList, Graph } = dag
 
 graphFromMap = (map) ->
     graph = new Graph
@@ -58,7 +58,7 @@ testGraph = (options) ->
     return context
 
 vows
-.describe('piping.Graph')
+.describe('dag.Graph')
 .addBatch(
     testGraph
         graph: {}
@@ -138,7 +138,7 @@ vows
 .export(module)
 
 vows
-.describe('piping.List')
+.describe('dag.List')
 .addBatch(
     'A List':
         topic: new List
@@ -148,7 +148,7 @@ vows
 .export(module)
 
 vows
-.describe('piping.Node')
+.describe('dag.Node')
 .addBatch(
     'A Node(A)':
         topic: new Node('A')
@@ -158,7 +158,7 @@ vows
 .export(module)
 
 vows
-.describe('piping.Arc')
+.describe('dag.Arc')
 .addBatch(
     'An Arc(A,B)':
         topic: new Arc(new Node('A'), new Node('B'))

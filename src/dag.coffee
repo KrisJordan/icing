@@ -1,8 +1,8 @@
-# **piping** is a simple library for constructing and operating on 
+# **dag** is a simple library for constructing and operating on 
 # [directed acyclic graphs](http://en.wikipedia.org/wiki/Directed_acyclic_graph).
 # Its primary purpose is to support command execution pipelines for **icing**.
 # 
-# **piping**'s key operations are:
+# **dag**'s key operations are:
 #
 # * finding the sources of a graph,
 # * extracting the subgraph to a particular node, and 
@@ -14,7 +14,7 @@
 # is a "linear ordering of its nodes in which each node comes before all nodes which
 # it has outbound edges."
 #
-# *Disclaimer:  piping's intention is not to be a complete or robust
+# *Disclaimer:  dag's intention is not to be a complete or robust
 # DAG library. Nor is it meant to be highly performant, just simple.*
 
 #### Graph
