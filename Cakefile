@@ -15,3 +15,16 @@ task 'test', 'Run icing tests', (options) ->
                 console.log stdout
             else
                 console.error stderr
+
+task 'docs', 'Generate docco documentation', (options) ->
+   command = "docco src/*" 
+   if options.verbose?
+       console.log "$ #{command}"
+    exec command,
+        (err, stdout, stderr) ->
+            if err
+                console.error stderr
+
+task 'all', 'Test and Document', (options) ->
+    invoke 'test'
+    invoke 'docs'

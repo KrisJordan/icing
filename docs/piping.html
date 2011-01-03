@@ -1,0 +1,152 @@
+<!DOCTYPE html>  <html> <head>   <title>piping.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               piping.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p><strong>piping</strong> is a simple library for constructing and operating on 
+<a href="http://en.wikipedia.org/wiki/Directed_acyclic_graph">directed acyclic graphs</a>.
+Its primary purpose is to support command execution pipelines for <strong>icing</strong>.</p>
+
+<p><strong>piping</strong>'s key operations are:</p>
+
+<ul>
+<li>finding the sources of a graph,</li>
+<li>extracting the subgraph to a particular node, and </li>
+<li>obtaining a topological ordering of nodes for a given graph.</li>
+</ul>
+
+<p>Our graph is composed of <strong>Nodes</strong> and <strong>Arcs</strong>. Each node has a unique name.
+Each arc flows out of one node and into another. A source is a node with no 
+incoming edges. A <a href="http://en.wikipedia.org/wiki/Topological_ordering">topological ordering</a>
+is a "linear ordering of its nodes in which each node comes before all nodes which
+it has outbound edges."</p>
+
+<p><em>Disclaimer:  piping's intention is not to be a complete or robust
+DAG library. Nor is it meant to be highly performant, just simple.</em></p>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <h3>Graph</h3>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">class</span> <span class="nx">Graph</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>A graph is just a collection of Nodes and Arcs. We keep maps
+of node names and arcs to ensure each node or arc between two
+nodes is represented by a single, unique object in the graph.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">constructor: </span><span class="nf">(@nodes = new NodeList, @arcs = new ArcList) -&gt;</span>
+        <span class="vi">@nodeMap = </span><span class="p">{}</span>
+        <span class="vi">@arcMap = </span><span class="p">{}</span>
+        <span class="nv">graph = </span><span class="k">this</span>
+        <span class="nx">@nodes</span><span class="p">.</span><span class="nx">forEach</span> <span class="nf">(node) -&gt;</span> <span class="nx">graph</span><span class="p">.</span><span class="nx">node</span> <span class="nx">node</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>Add a node to the graph and give the node a reference
+back to the graph. Nodes are required to have unique names.
+If the same node is added twice we silently noop. Different
+nodes of the same name with throw an error.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">node: </span><span class="nf">(node) -&gt;</span> <span class="c1"># Graph</span>
+        <span class="k">if</span> <span class="nx">@nodeMap</span><span class="p">[</span><span class="nx">node</span><span class="p">.</span><span class="nx">name</span><span class="p">]</span><span class="o">?</span>
+            <span class="k">if</span> <span class="nx">node</span><span class="p">.</span><span class="nx">equals</span><span class="p">(</span><span class="nx">@nodeMap</span><span class="p">[</span><span class="nx">node</span><span class="p">.</span><span class="nx">name</span><span class="p">])</span>
+                <span class="k">return</span> <span class="k">this</span>
+            <span class="k">else</span>
+                <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span> <span class="s2">&quot;Node of name #{node.name} already exists.&quot;</span>
+        <span class="nx">@nodes</span><span class="p">.</span><span class="nx">push</span> <span class="nx">node</span>
+        <span class="nx">@nodeMap</span><span class="p">[</span><span class="nx">node</span><span class="p">.</span><span class="nx">name</span><span class="p">]</span> <span class="o">=</span> <span class="nx">node</span>
+        <span class="k">this</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>Add an arc to the graph by specifying the names of nodes <strong>from -arc-> to</strong>
+Ensure the arc is unique to the graph.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">arc: </span><span class="nf">(fromName, toName) -&gt;</span> <span class="c1"># Graph</span>
+        <span class="k">if</span> <span class="nx">@arcMap</span><span class="p">[</span><span class="nx">fromName</span><span class="p">]</span><span class="o">?</span>
+            <span class="k">if</span> <span class="nx">@arcMap</span><span class="p">[</span><span class="nx">fromName</span><span class="p">][</span><span class="nx">toName</span><span class="p">]</span><span class="o">?</span>
+                <span class="k">return</span> <span class="k">this</span>
+
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">@nodeMap</span><span class="p">[</span><span class="nx">fromName</span><span class="p">]</span><span class="o">?</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span> <span class="s2">&quot;Node #{fromName} does not exist&quot;</span>
+        <span class="k">else</span>
+            <span class="nv">fromNode = </span><span class="nx">@nodeMap</span><span class="p">[</span><span class="nx">fromName</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">@nodeMap</span><span class="p">[</span><span class="nx">toName</span><span class="p">]</span><span class="o">?</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span> <span class="s2">&quot;Node #{toName} does not exist&quot;</span>
+        <span class="k">else</span>
+            <span class="nv">toNode = </span><span class="nx">@nodeMap</span><span class="p">[</span><span class="nx">toName</span><span class="p">]</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Create the Arc</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">arc = </span><span class="k">new</span> <span class="nx">Arc</span> <span class="nx">fromNode</span><span class="p">,</span> <span class="nx">toNode</span>
+        <span class="nx">@arcs</span><span class="p">.</span><span class="nx">push</span> <span class="nx">arc</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Cache it in the arcMap</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="k">if</span> <span class="o">not</span> <span class="nx">@arcMap</span><span class="p">[</span><span class="nx">fromNode</span><span class="p">.</span><span class="nx">name</span><span class="p">]</span><span class="o">?</span>
+            <span class="nx">@arcMap</span><span class="p">[</span><span class="nx">fromNode</span><span class="p">.</span><span class="nx">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="nx">@arcMap</span><span class="p">[</span><span class="nx">fromNode</span><span class="p">.</span><span class="nx">name</span><span class="p">][</span><span class="nx">toNode</span><span class="p">.</span><span class="nx">name</span><span class="p">]</span> <span class="o">=</span> <span class="nx">arc</span>
+
+        <span class="k">this</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Find sources by gathering all nodes that have
+inbound arcs and then removing those from the
+list of all nodes.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">sources: </span><span class="o">-&gt;</span> <span class="c1"># NodeList</span>
+        <span class="nv">nodesWithoutInboundArcs = </span><span class="nx">do</span> <span class="nx">@nodes</span><span class="p">.</span><span class="nx">clone</span>
+        <span class="nx">_</span><span class="p">(</span><span class="nx">@arcs</span><span class="p">.</span><span class="nx">pluckUniq</span> <span class="s1">&#39;to&#39;</span><span class="p">).</span><span class="nx">forEach</span> <span class="nf">(node) -&gt;</span>
+            <span class="nx">nodesWithoutInboundArcs</span><span class="p">.</span><span class="nx">remove</span> <span class="nx">node</span>
+        <span class="nx">nodesWithoutInboundArcs</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>Obtain a topological ordering by starting with
+source nodes. We visit each source node and:</p>
+
+<ol>
+<li>Add it to topological order</li>
+<li>Remove its outbound arcs from graph</li>
+<li>Check to see if we've created new sources after removing arcs and placing them
+in the sources list</li>
+<li>Repeat until out of sources</li>
+</ol>
+
+<p>If there are arcs left in the graph after this process there
+is a cycle in the graph. Otherwise we return the topologically sorted
+NodeList.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">topologicalOrdering: </span><span class="o">-&gt;</span> <span class="c1"># NodeList</span>
+        <span class="nv">nodes = </span><span class="k">new</span> <span class="nx">NodeList</span>
+        <span class="nv">sources = </span><span class="nx">do</span> <span class="k">this</span><span class="p">.</span><span class="nx">sources</span>
+        <span class="nv">arcs = </span><span class="nx">do</span> <span class="nx">@arcs</span><span class="p">.</span><span class="nx">clone</span>
+        <span class="k">while</span> <span class="o">not</span> <span class="nx">sources</span><span class="p">.</span><span class="nx">isEmpty</span><span class="p">()</span>
+            <span class="nv">source = </span><span class="nx">do</span> <span class="nx">sources</span><span class="p">.</span><span class="nx">pop</span>
+            <span class="nx">nodes</span><span class="p">.</span><span class="nx">push</span> <span class="nx">source</span>
+            <span class="nx">arcs</span><span class="p">.</span><span class="nx">from</span><span class="p">(</span><span class="nx">source</span><span class="p">).</span><span class="nx">forEach</span> <span class="nf">(arc) -&gt;</span>
+                <span class="nx">arcs</span><span class="p">.</span><span class="nx">remove</span> <span class="nx">arc</span>
+                <span class="k">if</span> <span class="nx">arcs</span><span class="p">.</span><span class="nx">to</span><span class="p">(</span><span class="nx">arc</span><span class="p">.</span><span class="nx">to</span><span class="p">).</span><span class="nx">isEmpty</span><span class="p">()</span>
+                    <span class="nx">sources</span><span class="p">.</span><span class="nx">push</span> <span class="nx">arc</span><span class="p">.</span><span class="nx">to</span>
+        <span class="k">if</span> <span class="nx">arcs</span><span class="p">.</span><span class="nx">isEmpty</span><span class="p">()</span>
+            <span class="nx">nodes</span>
+        <span class="k">else</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span> <span class="s2">&quot;Cycle detected in graph.&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>Utility function to determine if a cycle exists. 
+Works by trying to find a topological ordering. If
+none exists then a cycle is present.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">hasCycle: </span><span class="o">-&gt;</span> <span class="c1"># bool</span>
+        <span class="k">try</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">topologicalOrdering</span><span class="p">()</span>
+            <span class="kc">false</span>
+        <span class="k">catch</span> <span class="nb">Error</span>
+            <span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <p>Obtain a subgraph by constructing a new Graph by 
+backtracking from the target to sources.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">subgraph: </span><span class="nf">(target) -&gt;</span> <span class="c1">#Graph</span>
+        <span class="k">if</span> <span class="k">this</span><span class="p">.</span><span class="nx">hasCycle</span><span class="p">()</span> <span class="k">then</span> <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span> <span class="s2">&quot;Can&#39;t create subgraph in a cyclic graph.&quot;</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">@nodeMap</span><span class="p">[</span><span class="nx">target</span><span class="p">]</span><span class="o">?</span> <span class="k">then</span> <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span> <span class="s2">&quot;Target #{target} does not exist.&quot;</span>
+        <span class="k">else</span>
+            <span class="nv">target = </span><span class="nx">@nodeMap</span><span class="p">[</span><span class="nx">target</span><span class="p">]</span>
+        <span class="nv">graph = </span><span class="k">this</span>
+        <span class="nv">subgraph = </span><span class="k">new</span> <span class="nx">Graph</span>
+        <span class="nv">reconstruct = </span><span class="nf">(to) -&gt;</span>
+            <span class="nv">toClone = </span><span class="nx">do</span> <span class="nx">to</span><span class="p">.</span><span class="nx">clone</span>
+            <span class="nx">subgraph</span><span class="p">.</span><span class="nx">node</span> <span class="nx">toClone</span>
+            <span class="nx">graph</span><span class="p">.</span><span class="nx">arcs</span><span class="p">.</span><span class="nx">to</span><span class="p">(</span><span class="nx">to</span><span class="p">).</span><span class="nx">forEach</span> <span class="nf">(arc) -&gt;</span>
+               <span class="nv">fromClone = </span><span class="nx">do</span> <span class="nx">arc</span><span class="p">.</span><span class="nx">from</span><span class="p">.</span><span class="nx">clone</span>
+               <span class="nx">subgraph</span><span class="p">.</span><span class="nx">node</span> <span class="nx">fromClone</span>
+               <span class="nx">subgraph</span><span class="p">.</span><span class="nx">arc</span> <span class="nx">fromClone</span><span class="p">.</span><span class="nx">name</span><span class="p">,</span> <span class="nx">toClone</span><span class="p">.</span><span class="nx">name</span>
+               <span class="nx">reconstruct</span> <span class="nx">arc</span><span class="p">.</span><span class="nx">from</span>
+        <span class="nx">reconstruct</span> <span class="nx">target</span>
+        <span class="nx">subgraph</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <h3>Graph Components</h3>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <p>The base Node only has a name. It retains a reference
+to its graph for looking up arcs inbound to and outbound from
+the Node.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">class</span> <span class="nx">Node</span>
+    <span class="nv">constructor: </span><span class="nf">(@name) -&gt;</span>
+    <span class="nv">clone: </span><span class="o">-&gt;</span> <span class="k">return</span> <span class="k">new</span> <span class="nx">Node</span> <span class="nx">@name</span>
+    <span class="nv">equals: </span><span class="nf">(node) -&gt;</span> <span class="k">return</span> <span class="nx">@name</span> <span class="o">==</span> <span class="nx">node</span><span class="p">.</span><span class="nx">name</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <p>Arc is a simple data structure referencing two unique nodes.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">class</span> <span class="nx">Arc</span>
+    <span class="nv">constructor: </span><span class="nf">(@from,@to) -&gt;</span>
+        <span class="k">if</span> <span class="nx">@from</span> <span class="o">==</span> <span class="nx">@to</span> <span class="k">then</span> <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span> <span class="s2">&quot;An arc&#39;s from Node cannot also be its to Node&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-15">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-15">&#182;</a>               </div>               <p>List provides useful helpers around arrays
+that are used by Graph via subclasses NodeList
+and ArcList</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">class</span> <span class="nx">List</span>
+    <span class="nv">constructor: </span><span class="nf">(@items = []) -&gt;</span>
+    <span class="nv">push: </span><span class="nf">(item) -&gt;</span>
+        <span class="k">if</span> <span class="nx">_</span><span class="p">(</span><span class="nx">@items</span><span class="p">).</span><span class="nx">contains</span> <span class="nx">item</span>
+            <span class="vi">@items = </span><span class="nx">_</span><span class="p">(</span><span class="nx">@items</span><span class="p">).</span><span class="nx">without</span> <span class="nx">item</span>
+        <span class="nx">@items</span><span class="p">.</span><span class="nx">push</span> <span class="nx">item</span>
+    <span class="nv">filter: </span><span class="nf">(fn) -&gt;</span> <span class="nx">_</span><span class="p">(</span><span class="nx">@items</span><span class="p">).</span><span class="nx">filter</span> <span class="nx">fn</span>
+    <span class="nv">clone: </span><span class="o">-&gt;</span> <span class="k">new</span> <span class="nx">List</span> <span class="nx">@items</span><span class="p">.</span><span class="nx">slice</span> <span class="mi">0</span>
+    <span class="nv">forEach: </span><span class="nf">(fn) -&gt;</span> <span class="nx">_</span><span class="p">(</span><span class="nx">@items</span><span class="p">).</span><span class="nx">forEach</span> <span class="nx">fn</span>
+    <span class="nv">remove: </span><span class="nf">(item) -&gt;</span> <span class="vi">@items = </span><span class="nx">_</span><span class="p">(</span><span class="nx">@items</span><span class="p">).</span><span class="nx">without</span> <span class="nx">item</span>
+    <span class="nv">isEmpty: </span><span class="o">-&gt;</span> <span class="nx">@items</span><span class="p">.</span><span class="nx">length</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="nv">pop: </span><span class="o">-&gt;</span> <span class="nx">do</span> <span class="nx">@items</span><span class="p">.</span><span class="nx">pop</span>
+    <span class="nv">pluck: </span><span class="nf">(property) -&gt;</span>
+        <span class="nx">_</span><span class="p">(</span><span class="nx">@items</span><span class="p">).</span><span class="nx">pluck</span> <span class="nx">property</span>
+
+<span class="k">class</span> <span class="nx">NodeList</span> <span class="k">extends</span> <span class="nx">List</span>
+    <span class="nv">ofType: </span><span class="nf">(type) -&gt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">filter</span> <span class="nf">(node) -&gt;</span> <span class="nx">node</span> <span class="k">instanceof</span> <span class="nx">type</span>
+    <span class="nv">clone: </span><span class="o">-&gt;</span> <span class="k">new</span> <span class="nx">NodeList</span> <span class="k">super</span><span class="p">().</span><span class="nx">items</span>
+
+<span class="k">class</span> <span class="nx">ArcList</span> <span class="k">extends</span> <span class="nx">List</span>
+    <span class="nv">from: </span><span class="nf">(node) -&gt;</span>
+        <span class="k">new</span> <span class="nx">ArcList</span> <span class="nx">_</span><span class="p">(</span><span class="nx">@items</span><span class="p">).</span><span class="nx">filter</span> <span class="nf">(arc) -&gt;</span> <span class="nx">arc</span><span class="p">.</span><span class="nx">from</span> <span class="o">==</span> <span class="nx">node</span>
+    <span class="nv">to: </span><span class="nf">(node) -&gt;</span>
+        <span class="k">new</span> <span class="nx">ArcList</span> <span class="nx">_</span><span class="p">(</span><span class="nx">@items</span><span class="p">).</span><span class="nx">filter</span> <span class="nf">(arc) -&gt;</span> <span class="nx">arc</span><span class="p">.</span><span class="nx">to</span> <span class="o">==</span> <span class="nx">node</span>
+    <span class="nv">pluckUniq: </span><span class="nf">(property) -&gt;</span>
+        <span class="nx">_</span><span class="p">(</span><span class="nx">@items</span><span class="p">).</span><span class="nx">chain</span><span class="p">().</span><span class="nx">pluck</span><span class="p">(</span><span class="nx">property</span><span class="p">).</span><span class="nx">uniq</span><span class="p">().</span><span class="nx">value</span><span class="p">()</span>
+    <span class="nv">clone: </span><span class="o">-&gt;</span> <span class="k">new</span> <span class="nx">ArcList</span> <span class="k">super</span><span class="p">().</span><span class="nx">items</span></pre></div>             </td>           </tr>                               <tr id="section-16">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-16">&#182;</a>               </div>               <h3>Imports &amp; Exports</h3>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">_ = </span><span class="nx">require</span> <span class="s1">&#39;underscore&#39;</span>
+<span class="nx">_</span><span class="p">(</span><span class="nx">exports</span><span class="p">).</span><span class="nx">extend</span> <span class="p">{</span><span class="nx">Node</span><span class="p">,</span><span class="nx">Arc</span><span class="p">,</span><span class="nx">List</span><span class="p">,</span><span class="nx">NodeList</span><span class="p">,</span><span class="nx">ArcList</span><span class="p">,</span><span class="nx">Graph</span><span class="p">}</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
