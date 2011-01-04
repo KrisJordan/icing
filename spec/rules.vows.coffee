@@ -54,7 +54,7 @@ vows
             topic: (graph) -> graph.nodes.ofType FileNode
             'of length 1': (files) ->
                 assert.length files.items, 1
-    'A RuleGraph f([A]) -> B=>c':
+    'A RuleGraph f([A]) -> B=>C':
         topic: ->
             graph = new RuleGraph
             graph.rule new Rule 'B', ['A'], new Recipe (->), (->['C'])
@@ -79,6 +79,31 @@ vows
             'to B,C': (arcs) ->
                 to = _(arcs.pluck 'to').pluck 'name'
                 ['B','C'].forEach (item) ->
+                    assert.includes to, item
+    'A RuleGraph f([A])->B=>C, f([B])->D':
+        topic: ->
+            graph = new RuleGraph
+            graph.rule new Rule 'B', ['A'], new Recipe (->), (->['C'])
+            graph.rule new Rule 'D', ['B'], (->)
+        'has RecipeNodes':
+            topic: (graph) -> graph.nodes.ofType RecipeNode
+            'of length 2': (recipes) ->
+                assert.length recipes.items, 2
+        'has FileNodes':
+            topic: (graph) -> graph.nodes.ofType FileNode
+            'of length 2': (files) ->
+                assert.length files.items, 2
+        'has Arcs':
+            topic: (graph) -> graph.arcs
+            'of length 3': (arcs) ->
+                assert.length arcs.items, 3
+            'from A,B,C': (arcs) ->
+                from = _(arcs.pluck 'from').pluck 'name'
+                ['A','B','C'].forEach (item) ->
+                    assert.includes from, item
+            'to B,C,D': (arcs) ->
+                to = _(arcs.pluck 'to').pluck 'name'
+                ['B','C','D'].forEach (item) ->
                     assert.includes to, item
 )
 .export(module)
