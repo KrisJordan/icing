@@ -24,9 +24,17 @@ assert                  = require 'assert'
 
 class RuleGraph extends Graph
     rule: (rule) ->
-        # assert.ok rule instanceof Rule
+        assert.ok rule instanceof Rule
+
+        graph = this
+
         target = new RecipeNode rule.target, rule.recipe
-        this.node target
+        graph.node target
+
+        rule.prereqs.forEach (prereq) ->
+            input = new FileNode prereq
+            graph.node input
+
         this
 
 class Rule
