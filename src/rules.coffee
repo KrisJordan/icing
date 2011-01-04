@@ -42,7 +42,7 @@ class RuleGraph extends Graph
                 # its dependency is on those FileNode outputs and not the RecipeNode
                 # itself.
                 if input instanceof RecipeNode
-                    inputsOutputs = (new NodeList graph.arcs.from(input).pluck('to')).ofType(FileNode)
+                    inputsOutputs =  graph.arcs.from(input).to().ofType(FileNode)
                     if not inputsOutputs.isEmpty()
                         inputsOutputs.forEach (inputsOutput) ->
                             graph.arc inputsOutput.name, target.name

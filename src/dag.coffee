@@ -87,7 +87,7 @@ class Graph
     # list of all nodes.
     sources: -> # NodeList
         nodesWithoutInboundArcs = do @nodes.clone
-        _(@arcs.pluckUniq 'to').forEach (node) ->
+        @arcs.to().forEach (node) ->
             nodesWithoutInboundArcs.remove node
         nodesWithoutInboundArcs
 
@@ -189,9 +189,15 @@ class NodeList extends List
 
 class ArcList extends List
     from: (node) ->
-        new ArcList _(@items).filter (arc) -> arc.from == node
+        if node?
+            new ArcList _(@items).filter (arc) -> arc.from == node
+        else
+            new NodeList this.pluckUniq 'from'
     to: (node) ->
-        new ArcList _(@items).filter (arc) -> arc.to == node
+        if node?
+            new ArcList _(@items).filter (arc) -> arc.to == node
+        else
+            new NodeList this.pluckUniq 'to'
     pluckUniq: (property) ->
         _(@items).chain().pluck(property).uniq().value()
     clone: -> new ArcList super().items
