@@ -18,9 +18,9 @@
 # if they exist.
 
 # **Dependencies**
-{ Graph, Node, Arc }    = require './dag'
-_                       = require 'underscore'
-assert                  = require 'assert'
+{ Graph, Node, Arc, NodeList }  = require './dag'
+_                               = require 'underscore'
+assert                          = require 'assert'
 
 class RuleGraph extends Graph
     rule: (rule) ->
@@ -37,6 +37,16 @@ class RuleGraph extends Graph
             # rules.
             if graph.node prereq
                 input = graph.node prereq
+                # There's a special case when a RecipeNode's recipe has outputs. When
+                # other RecipeNode targets have a RecipeNode with outputs as a prereq
+                # its dependency is on those FileNode outputs and not the RecipeNode
+                # itself.
+                if input instanceof RecipeNode
+                    inputsOutputs = (new NodeList graph.arcs.from(input).pluck('to')).ofType(FileNode)
+                    if not inputsOutputs.isEmpty()
+                        inputsOutputs.forEach (inputsOutput) ->
+                            graph.arc inputsOutput.name, target.name
+                        return
             else
                 input = new FileNode prereq
                 graph.node input
