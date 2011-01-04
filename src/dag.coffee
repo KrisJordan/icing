@@ -187,6 +187,7 @@ class List
 class NodeList extends List
     ofType: (type) -> new NodeList _(@items).filter (node) -> node instanceof type
     clone: -> new NodeList super().items
+    names: -> _(@items).pluck 'name'
 
 class ArcList extends List
     from: (node) ->

@@ -65,8 +65,13 @@ global.task = (target, description, prereqs=undefined, recipe=undefined) ->
         prereqs = []
 
     if not recipe?
-        recipe = prereqs
-        prereqs = []
+        if description.shift?
+            recipe = prereqs
+            prereqs = description
+            description = target
+        else
+            recipe = prereqs
+            prereqs = []
 
     # Add a rule to the rule graph.
     graph.rule new Rule target, prereqs, recipe
@@ -141,6 +146,6 @@ runRecipeContext = (graph, recipeNode,  runNextRecipeCallback, options) ->
         callback:   runNextRecipeCallback
         finished:   finishedFn
         failed:     failedFn
-        prereqs:    recipeNode.prereqs graph
+        prereqs:    recipeNode.prereqs(graph).names()
         exec:       execFn
     }

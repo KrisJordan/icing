@@ -21,6 +21,7 @@
 { Graph, Node, Arc, NodeList }  = require './dag'
 _                               = require 'underscore'
 assert                          = require 'assert'
+{ globSync }                    = require 'glob'
 
 class RuleGraph extends Graph
     recipeNodesTo: (target) ->
@@ -51,10 +52,19 @@ class RuleGraph extends Graph
                         inputsOutputs.forEach (inputsOutput) ->
                             graph.arc inputsOutput.name, target.name
                         return
+                graph.arc input.name, target.name
             else
-                input = new FileNode prereq
-                graph.node input
-            graph.arc input.name, target.name
+                # see if there's an expansion for it
+                globbed = globSync prereq
+                if globbed.length > 0
+                    globbed.forEach (file) ->
+                        input = new FileNode file
+                        graph.node input
+                        graph.arc input.name, target.name
+                else
+                    input = new FileNode prereq
+                    graph.node input
+                    graph.arc input.name, target.name
 
         outputs = rule.recipe.outputs.call rule
         outputs.forEach (output) ->
@@ -69,7 +79,7 @@ class Rule
     constructor: (@target, @prereqs, @recipe) ->
         if _(@recipe).isFunction()
             @recipe = new Recipe @recipe
-        @prereqs = @prereqs.reverse()
+        @prereqs = @prereqs.reverse() # Because we push they'll get reversed again
 
 class Recipe
     constructor: (@exec = (->), @outputs = (->[])) ->
@@ -80,7 +90,7 @@ class RecipeNode extends Node
     equals: (node) ->
         super(node) && node instanceof RecipeNode
     clone: (node) -> new RecipeNode @name, @recipe
-    prereqs: (graph) -> [] #TODO implement
+    prereqs: (graph) -> graph.arcs.to(graph.node this.name).from().ofType FileNode
     shouldRun: (graph) -> true
     run: (context, options) -> @recipe.exec.call context, options
 

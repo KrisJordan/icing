@@ -145,6 +145,7 @@ and ArcList</p>             </td>             <td class="code">               <d
 <span class="k">class</span> <span class="nx">NodeList</span> <span class="k">extends</span> <span class="nx">List</span>
     <span class="nv">ofType: </span><span class="nf">(type) -&gt;</span> <span class="k">new</span> <span class="nx">NodeList</span> <span class="nx">_</span><span class="p">(</span><span class="nx">@items</span><span class="p">).</span><span class="nx">filter</span> <span class="nf">(node) -&gt;</span> <span class="nx">node</span> <span class="k">instanceof</span> <span class="nx">type</span>
     <span class="nv">clone: </span><span class="o">-&gt;</span> <span class="k">new</span> <span class="nx">NodeList</span> <span class="k">super</span><span class="p">().</span><span class="nx">items</span>
+    <span class="nv">names: </span><span class="o">-&gt;</span> <span class="nx">_</span><span class="p">(</span><span class="nx">@items</span><span class="p">).</span><span class="nx">pluck</span> <span class="s1">&#39;name&#39;</span>
 
 <span class="k">class</span> <span class="nx">ArcList</span> <span class="k">extends</span> <span class="nx">List</span>
     <span class="nv">from: </span><span class="nf">(node) -&gt;</span>

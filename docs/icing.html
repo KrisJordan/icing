@@ -54,15 +54,20 @@ task 'A', 'run A', ['B'], -&gt; console.log 'A'
 
 <span class="nv">graph = </span><span class="k">new</span> <span class="nx">RuleGraph</span>
 
-<span class="nv">global.task = </span><span class="nf">(target, description, prereqs, recipe=undefined) -&gt;</span>
+<span class="nv">global.task = </span><span class="nf">(target, description, prereqs=undefined, recipe=undefined) -&gt;</span>
     <span class="k">if</span> <span class="o">not</span> <span class="nx">prereqs</span><span class="o">?</span> <span class="o">and</span> <span class="o">not</span> <span class="nx">recipe</span><span class="o">?</span>
+        <span class="nv">recipe = </span><span class="nx">description</span>
         <span class="nv">description = </span><span class="nx">target</span>
-        <span class="nv">recipe = </span><span class="nx">prereqs</span>
         <span class="nv">prereqs = </span><span class="p">[]</span>
 
     <span class="k">if</span> <span class="o">not</span> <span class="nx">recipe</span><span class="o">?</span>
-        <span class="nv">recipe = </span><span class="nx">prereqs</span>
-        <span class="nv">prereqs = </span><span class="p">[]</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Add a rule to the rule graph.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">graph</span><span class="p">.</span><span class="nx">rule</span> <span class="k">new</span> <span class="nx">Rule</span> <span class="nx">target</span><span class="p">,</span> <span class="nx">prereqs</span><span class="p">,</span> <span class="nx">recipe</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Bootstrap into cake's task book keeping</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">cakeTask</span> <span class="nx">target</span><span class="p">,</span> <span class="nx">description</span><span class="p">,</span> <span class="nf">(options) -&gt;</span>
+        <span class="k">if</span> <span class="nx">description</span><span class="p">.</span><span class="nx">shift</span><span class="o">?</span>
+            <span class="nv">recipe = </span><span class="nx">prereqs</span>
+            <span class="nv">prereqs = </span><span class="nx">description</span>
+            <span class="nv">description = </span><span class="nx">target</span>
+        <span class="k">else</span>
+            <span class="nv">recipe = </span><span class="nx">prereqs</span>
+            <span class="nv">prereqs = </span><span class="p">[]</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Add a rule to the rule graph.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">graph</span><span class="p">.</span><span class="nx">rule</span> <span class="k">new</span> <span class="nx">Rule</span> <span class="nx">target</span><span class="p">,</span> <span class="nx">prereqs</span><span class="p">,</span> <span class="nx">recipe</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Bootstrap into cake's task book keeping</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">cakeTask</span> <span class="nx">target</span><span class="p">,</span> <span class="nx">description</span><span class="p">,</span> <span class="nf">(options) -&gt;</span>
         <span class="nv">recipeNodes = </span><span class="nx">graph</span><span class="p">.</span><span class="nx">recipeNodesTo</span> <span class="nx">target</span>
         <span class="nv">aRecipeRan = </span><span class="kc">false</span>
         <span class="nv">allRecipesRan = </span><span class="kc">false</span>
@@ -124,7 +129,7 @@ task 'A', 'run A', ['B'], -&gt; console.log 'A'
         <span class="nv">callback: </span>  <span class="nx">runNextRecipeCallback</span>
         <span class="nv">finished: </span>  <span class="nx">finishedFn</span>
         <span class="nv">failed: </span>    <span class="nx">failedFn</span>
-        <span class="nv">prereqs: </span>   <span class="nx">recipeNode</span><span class="p">.</span><span class="nx">prereqs</span> <span class="nx">graph</span>
+        <span class="nv">prereqs: </span>   <span class="nx">recipeNode</span><span class="p">.</span><span class="nx">prereqs</span><span class="p">(</span><span class="nx">graph</span><span class="p">).</span><span class="nx">names</span><span class="p">()</span>
         <span class="nv">exec: </span>      <span class="nx">execFn</span>
     <span class="p">}</span>
 
