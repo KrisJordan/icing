@@ -41,5 +41,18 @@ vows
                 assert.length arcs, 1
                 assert.equal arcs[0].from.name, 'A'
                 assert.equal arcs[0].to.name, 'B'
+    'A RuleGraph f([A]) -> B .. f([B]) -> C':
+        topic: ->
+            graph = new RuleGraph
+            graph.rule new Rule 'B', ['A'], (->)
+            graph.rule new Rule 'C', ['B'], (->)
+        'has RecipeNodes':
+            topic: (graph) -> graph.nodes.ofType RecipeNode
+            'of length 2': (recipes) ->
+                assert.length recipes.items, 2
+        'has FileNodes':
+            topic: (graph) -> graph.nodes.ofType FileNode
+            'of length 1': (files) ->
+                assert.length files.items, 1
 )
 .export(module)

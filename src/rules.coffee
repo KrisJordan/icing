@@ -32,9 +32,16 @@ class RuleGraph extends Graph
         graph.node target
 
         rule.prereqs.forEach (prereq) ->
-            input = new FileNode prereq
+            # If a prereq already exists, we use it. Targets must therefore
+            # always be defined prior to being referenced as prerequisites in other
+            # rules.
+            if graph.node prereq
+                input = graph.node prereq
+            else
+                input = new FileNode prereq
             graph.node input
             graph.arc input.name, target.name
+
         this
 
 class Rule
@@ -42,9 +49,13 @@ class Rule
         
 class RecipeNode extends Node
     constructor: (@name, @recipe) ->
+    equals: (node) ->
+        super(node) && node instanceof RecipeNode
 
 class FileNode extends Node
     constructor: (@name) ->
+    equals: (node) ->
+        super(node) && node instanceof FileNode
 
 class Recipe
     constructor: (@fn = (->), @outputs = (->[])) ->

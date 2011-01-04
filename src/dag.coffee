@@ -37,7 +37,13 @@ class Graph
     # back to the graph. Nodes are required to have unique names.
     # If the same node is added twice we silently noop. Different
     # nodes of the same name with throw an error.
-    node: (node) -> # Graph
+    node: (node) -> # Graph || Node
+        if _(node).isString()
+            if @nodeMap[node]?
+                return @nodeMap[node]
+            else
+                return undefined
+
         if @nodeMap[node.name]?
             if node.equals(@nodeMap[node.name])
                 return this
