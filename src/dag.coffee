@@ -178,7 +178,7 @@ class List
         _(@items).pluck property
 
 class NodeList extends List
-    ofType: (type) -> this.filter (node) -> node instanceof type
+    ofType: (type) -> new NodeList _(@items).filter (node) -> node instanceof type
     clone: -> new NodeList super().items
 
 class ArcList extends List

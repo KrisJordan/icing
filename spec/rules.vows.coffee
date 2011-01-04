@@ -15,9 +15,25 @@ vows
     'A RuleGraph f([]) -> A':
         topic: ->
             graph = new RuleGraph
-            graph.rule 'A',[],(->)
+            graph.rule new Rule 'A',[],(->)
         'has 1 node that is a RecipeNode': (graph) ->
             assert.length graph.nodes.items, 1
             assert.isTrue graph.nodes.items[0] instanceof RecipeNode
+    'A RuleGraph f([A]) -> B':
+        topic: ->
+            graph = new RuleGraph
+            graph.rule new Rule 'B',['A'],(->)
+        'has 2 nodes A and B': (graph) ->
+            assert.length graph.nodes.items, 2
+        'has nodes of type FileNode':
+            topic: (graph) -> graph.nodes.ofType FileNode
+            'of length 1 with name A': (files) ->
+                assert.length files.items, 1
+                assert.equal files.items[0].name, 'A'
+        'has nodes of type RecipeNode':
+            topic: (graph) -> graph.nodes.ofType RecipeNode
+            'of length 1 with name B': (recipes) ->
+                assert.length recipes.items, 1
+                assert.equal recipes.items[0].name, 'B'
 )
 .export(module)

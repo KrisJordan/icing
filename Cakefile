@@ -17,7 +17,7 @@ task 'test', 'Run icing tests', (options) ->
                 console.error stderr
 
 task 'docs', 'Generate docco documentation', (options) ->
-   command = "docco src/*" 
+   command = "docco src/*"
    if options.verbose?
        console.log "$ #{command}"
     exec command,
