@@ -17,6 +17,9 @@
 # *Disclaimer:  dag's intention is not to be a complete or robust
 # DAG library. Nor is it meant to be highly performant, just simple.*
 
+# **Dependencies** 
+_ = require 'underscore'
+
 #### Graph
 
 class Graph
@@ -187,6 +190,5 @@ class ArcList extends List
         _(@items).chain().pluck(property).uniq().value()
     clone: -> new ArcList super().items
 
-#### Imports & Exports 
-_ = require 'underscore'
+####  Exports 
 _(exports).extend {Node,Arc,List,NodeList,ArcList,Graph}
