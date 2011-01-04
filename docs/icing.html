@@ -1,0 +1,110 @@
+<!DOCTYPE html>  <html> <head>   <title>icing.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="dag.html">                 dag.coffee               </a>                                           <a class="source" href="icing.html">                 icing.coffee               </a>                                           <a class="source" href="rules.html">                 rules.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               icing.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p><strong>icing</strong> adds dependency management to Cakefiles by extending and
+slightly modifying cake's "task" function. Add icing to your Cakefiles by adding
+a single line:</p>
+
+<pre><code>require 'icing'
+</code></pre>
+
+<p>Traditional cake tasks can still be defined as:</p>
+
+<pre><code>task 'name', 'desc', (options) -&gt;
+</code></pre>
+
+<p>With icing, tasks can also be defined with a prerequisite/dependency array:</p>
+
+<pre><code>task 'name', 'desc', [prereqs], recipe
+</code></pre>
+
+<p><em>prereqs</em> is an array of task or file names this task depends on. If a prereq is a
+task name it <strong>must</strong> be defined prior to being used as a prereq.</p>
+
+<p><em>recipe</em> can be a plain-old function like with traditional Cakefiles or it
+can be an object which responds to the methods <em>exec</em> for running the rule and
+<em>outputs</em> for reporting an array of files output from the task. By specifying
+outputs the dependency graph can more intelligently decide whether or not a given
+task needs to run.</p>
+
+<pre><code>recipe = (options) -&gt;
+
+recipe = 
+    exec:     (options) -&gt;
+    outputs:  (options) -&gt; [filenames]
+</code></pre>
+
+<p><strong><em>invoke</em> is deprecated with icing.</strong> The only major incompatibility with plain
+Cakefiles is that the the <em>invoke</em> command is remapped to no-op. This is because
+<em>invoke</em> is handled automatically by icing's dependency management. The following
+traditional Cakefile:</p>
+
+<pre><code>task 'B', 'run B', -&gt; console.log 'B'
+task 'A', 'run A', -&gt;
+    invoke 'B'
+    console.log 'A'
+</code></pre>
+
+<p>Can be rewritten with icing as:</p>
+
+<pre><code>require 'icing'
+task 'B', 'run B', -&gt; console.log 'B'
+task 'A', 'run A', ['B'], -&gt; console.log 'A'
+</code></pre>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <h3>Options</h3>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">option</span> <span class="s1">&#39;-v&#39;</span><span class="p">,</span><span class="s1">&#39;--verbose&#39;</span><span class="p">,</span><span class="s1">&#39;Display progress as tasks are executed&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>coming soon - option '-w','--watch','Monitor files for changes and automatically rebuild'</p>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <h3>Dependencies and Globals</h3>             </td>             <td class="code">               <div class="highlight"><pre><span class="p">{</span> <span class="nx">RuleGraph</span><span class="p">,</span> <span class="nx">Rule</span><span class="p">,</span> <span class="nx">RecipeNode</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s1">&#39;./rules&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>Preserve a reference to cake's task, we'll be using it.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">cakeTask = </span><span class="nx">global</span><span class="p">.</span><span class="nx">task</span>
+
+<span class="nv">graph = </span><span class="k">new</span> <span class="nx">RuleGraph</span>
+
+<span class="nv">global.task = </span><span class="nf">(target, description, prereqs, recipe=undefined) -&gt;</span>
+    <span class="k">if</span> <span class="o">not</span> <span class="nx">recipe</span><span class="o">?</span>
+        <span class="nv">recipe = </span><span class="nx">prereqs</span>
+        <span class="nv">prereqs = </span><span class="p">[]</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Add a rule to the rule graph.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">graph</span><span class="p">.</span><span class="nx">rule</span> <span class="k">new</span> <span class="nx">Rule</span> <span class="nx">target</span><span class="p">,</span> <span class="nx">prereqs</span><span class="p">,</span> <span class="nx">recipe</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Bootstrap into cake's task book keeping</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">cakeTask</span> <span class="nx">target</span><span class="p">,</span> <span class="nx">description</span><span class="p">,</span> <span class="nf">(options) -&gt;</span>
+        <span class="nv">recipeNodes = </span><span class="nx">graph</span><span class="p">.</span><span class="nx">recipeNodesTo</span> <span class="nx">target</span>
+        <span class="nv">aRecipeRan = </span><span class="kc">false</span>
+        <span class="nv">runNextRecipeCallback = </span><span class="nf">( ok = true, report = {} ) -&gt;</span>
+            <span class="k">if</span> <span class="o">not</span> <span class="nx">ok</span>
+                <span class="nx">console</span><span class="p">.</span><span class="nx">error</span> <span class="s2">&quot;===== #{report.rule.target} Failed =====&quot;</span>
+                <span class="nx">console</span><span class="p">.</span><span class="nx">error</span> <span class="nx">report</span><span class="p">.</span><span class="nx">message</span>
+                <span class="nx">process</span><span class="p">.</span><span class="nx">exit</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="o">not</span> <span class="nx">recipeNodes</span><span class="p">.</span><span class="nx">isEmpty</span><span class="p">()</span>
+                <span class="nv">recipeNode = </span><span class="nx">recipeNodes</span><span class="p">.</span><span class="nx">shift</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="nx">recipeNode</span><span class="p">.</span><span class="nx">shouldRun</span> <span class="nx">graph</span>
+                    <span class="nv">context = </span><span class="nx">runRecipeContext</span> <span class="nx">graph</span><span class="p">,</span> <span class="nx">recipeNode</span><span class="p">,</span> <span class="nx">runNextRecipeCallback</span><span class="p">,</span> <span class="nx">options</span>
+                    <span class="nx">recipeNode</span><span class="p">.</span><span class="nx">run</span> <span class="nx">context</span><span class="p">,</span> <span class="nx">options</span>
+                    <span class="nv">aRecipeRan = </span><span class="kc">true</span>
+                <span class="k">else</span>
+                    <span class="nx">do</span> <span class="nx">runNextRecipeCallback</span>
+            <span class="k">else</span>
+                <span class="k">if</span> <span class="o">not</span> <span class="nx">aRecipeRan</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Homage to make</p>             </td>             <td class="code">               <div class="highlight"><pre>                    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s2">&quot;cake: Nothing to be done for `#{target}&#39;.&quot;</span>
+
+        <span class="nx">do</span> <span class="nx">runNextRecipeCallback</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <h3>Helpers</h3>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>Set-up the context that a recipe exec is run in.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">runRecipeContext = </span><span class="nf">(graph, recipeNode,  runNextRecipeCallback, options) -&gt;</span>
+
+    <span class="nv">finishedFn = </span><span class="o">-&gt;</span> <span class="nx">do</span> <span class="nx">runNextRecipeCallback</span>
+
+    <span class="nv">failedFn = </span><span class="nf">(message) -&gt;</span> <span class="nx">runNextRecipeCallback</span> <span class="kc">false</span><span class="p">,</span> <span class="p">{</span> <span class="nv">target: </span><span class="nx">recipeNode</span><span class="p">.</span><span class="nx">name</span><span class="p">,</span> <span class="nv">message: </span><span class="nx">message</span> <span class="p">}</span>
+
+    <span class="nv">execFn = </span><span class="nf">(commands) -&gt;</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">commands</span> <span class="k">instanceof</span> <span class="nb">Array</span>
+            <span class="nv">commands = </span><span class="p">[</span><span class="nx">commands</span><span class="p">]</span>
+
+        <span class="nv">runNextCommandCallback = </span><span class="o">-&gt;</span>
+            <span class="k">if</span> <span class="nx">commands</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                <span class="nv">command = </span><span class="nx">do</span> <span class="nx">commands</span><span class="p">.</span><span class="nx">shift</span>
+                <span class="k">if</span> <span class="nx">options</span><span class="p">.</span><span class="nx">verbose</span><span class="o">?</span>
+                    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s2">&quot;$ #{command}&quot;</span>
+                <span class="nx">exec</span> <span class="nx">command</span><span class="p">,</span> <span class="nf">(error, stdout, stderr) -&gt;</span>
+                    <span class="k">if</span> <span class="nx">options</span><span class="p">.</span><span class="nx">verbose</span><span class="o">?</span> <span class="o">and</span> <span class="nx">stdout</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span>
+                        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">stdout</span>
+                    <span class="k">if</span> <span class="o">not</span> <span class="nx">error</span><span class="o">?</span>
+                        <span class="nx">runNextCommandCallback</span><span class="p">()</span>
+                    <span class="k">else</span>
+                        <span class="nx">failedFn</span><span class="p">()</span>
+            <span class="k">else</span>
+                <span class="nx">finishedFn</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="nv">callback: </span>  <span class="nx">runNextRecipeCallback</span>
+        <span class="nv">finished: </span>  <span class="nx">finishedFn</span>
+        <span class="nv">failed: </span>    <span class="nx">failedFn</span>
+        <span class="nv">prereqs: </span>   <span class="nx">recipeNode</span><span class="p">.</span><span class="nx">prereqs</span> <span class="nx">graph</span>
+    <span class="p">}</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

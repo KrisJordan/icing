@@ -1,6 +1,5 @@
+require './src/icing'
 {exec}      = require 'child_process'
-
-option '-v','--verbose','Enable verbose output'
 
 task 'test', 'Run icing tests', (options) ->
     args = []
@@ -10,9 +9,11 @@ task 'test', 'Run icing tests', (options) ->
     if options.verbose?
         console.log "$ #{command}"
     exec command,
-        (err, stdout, stderr) ->
+        (err, stdout, stderr) =>
             if not err
                 console.log stdout
+                console.log 'done test'
+                this.finished()
             else
                 console.error stderr
 
@@ -21,10 +22,11 @@ task 'docs', 'Generate docco documentation', (options) ->
    if options.verbose?
        console.log "$ #{command}"
     exec command,
-        (err, stdout, stderr) ->
+        (err, stdout, stderr) =>
             if err
                 console.error stderr
+            else
+                console.log 'done docs'
+                this.finished()
 
-task 'all', 'Test and Document', (options) ->
-    invoke 'test'
-    invoke 'docs'
+task 'all', 'Test and Document', ['docs','test'], (options) -> this.finished()

@@ -23,6 +23,11 @@ _                               = require 'underscore'
 assert                          = require 'assert'
 
 class RuleGraph extends Graph
+    recipeNodesTo: (target) ->
+        this.subgraph(target)
+            .topologicalOrdering()
+            .ofType RecipeNode
+
     rule: (rule) ->
         assert.ok rule instanceof Rule
 
@@ -38,9 +43,8 @@ class RuleGraph extends Graph
             if graph.node prereq
                 input = graph.node prereq
                 # There's a special case when a RecipeNode's recipe has outputs. When
-                # other RecipeNode targets have a RecipeNode with outputs as a prereq
-                # its dependency is on those FileNode outputs and not the RecipeNode
-                # itself.
+                # other RecipeNode targets have one as a prereq its dependency is on 
+                # those FileNode outputs and not the RecipeNode itself.
                 if input instanceof RecipeNode
                     inputsOutputs =  graph.arcs.from(input).to().ofType(FileNode)
                     if not inputsOutputs.isEmpty()
@@ -60,23 +64,31 @@ class RuleGraph extends Graph
 
         this
 
+#### Rule Graph Elements        
 class Rule
     constructor: (@target, @prereqs, @recipe) ->
         if _(@recipe).isFunction()
             @recipe = new Recipe @recipe
-        
+
+class Recipe
+    constructor: (@exec = (->), @outputs = (->[])) ->
+
+#### Additional Graph Nodes
 class RecipeNode extends Node
     constructor: (@name, @recipe) ->
     equals: (node) ->
         super(node) && node instanceof RecipeNode
+    clone: (node) -> new RecipeNode @name, @recipe
+    prereqs: (graph) -> [] #TODO implement
+    shouldRun: (graph) -> true
+    run: (context, options) -> @recipe.exec.call context, options
 
 class FileNode extends Node
     constructor: (@name) ->
     equals: (node) ->
         super(node) && node instanceof FileNode
+    clone: (node) -> new FileNode @name
 
-class Recipe
-    constructor: (@fn = (->), @outputs = (->[])) ->
 
 #### Exports 
 _(exports).extend { RuleGraph, Rule, RecipeNode, FileNode, Recipe }

@@ -180,6 +180,7 @@ class List
     remove: (item) -> @items = _(@items).without item
     isEmpty: -> @items.length == 0
     pop: -> do @items.pop
+    shift: -> do @items.shift
     pluck: (property) ->
         _(@items).pluck property
 
