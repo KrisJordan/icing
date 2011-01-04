@@ -54,5 +54,19 @@ vows
             topic: (graph) -> graph.nodes.ofType FileNode
             'of length 1': (files) ->
                 assert.length files.items, 1
+    'A RuleGraph f([A]) -> B=>c':
+        topic: ->
+            graph = new RuleGraph
+            graph.rule new Rule 'B', ['A'], new Recipe (->), (->['C'])
+        'has RecipeNodes':
+            topic: (graph) -> graph.nodes.ofType RecipeNode
+            'of length 1': (recipes) ->
+                assert.length recipes.items, 1
+        'has FileNodes':
+            topic: (graph) -> graph.nodes.ofType FileNode
+            'of length 2': (files) ->
+                assert.length files.items, 2
+            'containing C': (files) ->
+                assert.includes (files.pluck 'name'), 'C'
 )
 .export(module)

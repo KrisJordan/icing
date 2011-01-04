@@ -39,7 +39,7 @@ class RuleGraph extends Graph
                 input = graph.node prereq
             else
                 input = new FileNode prereq
-            graph.node input
+                graph.node input
             graph.arc input.name, target.name
 
         this
