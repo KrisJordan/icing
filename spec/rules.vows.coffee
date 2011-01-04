@@ -35,5 +35,11 @@ vows
             'of length 1 with name B': (recipes) ->
                 assert.length recipes.items, 1
                 assert.equal recipes.items[0].name, 'B'
+        'has arcs':
+            topic: (graph) -> graph.arcs.items
+            'of length 1, from A to B': (arcs) ->
+                assert.length arcs, 1
+                assert.equal arcs[0].from, 'A'
+                assert.equal arcs[0].to, 'B'
 )
 .export(module)
