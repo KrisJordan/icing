@@ -61,6 +61,7 @@ those FileNode outputs and not the RecipeNode itself.</p>             </td>     
     <span class="nv">constructor: </span><span class="nf">(@target, @prereqs, @recipe) -&gt;</span>
         <span class="k">if</span> <span class="nx">_</span><span class="p">(</span><span class="nx">@recipe</span><span class="p">).</span><span class="nx">isFunction</span><span class="p">()</span>
             <span class="vi">@recipe = </span><span class="k">new</span> <span class="nx">Recipe</span> <span class="nx">@recipe</span>
+        <span class="vi">@prereqs = </span><span class="nx">@prereqs</span><span class="p">.</span><span class="nx">reverse</span><span class="p">()</span>
 
 <span class="k">class</span> <span class="nx">Recipe</span>
     <span class="nv">constructor: </span><span class="p">(</span><span class="vi">@exec = </span><span class="p">(</span><span class="o">-&gt;</span><span class="p">),</span> <span class="vi">@outputs = </span><span class="p">(</span><span class="o">-&gt;</span><span class="p">[]))</span> <span class="o">-&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <h3>Additional Graph Nodes</h3>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">class</span> <span class="nx">RecipeNode</span> <span class="k">extends</span> <span class="nx">Node</span>

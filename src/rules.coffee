@@ -69,6 +69,7 @@ class Rule
     constructor: (@target, @prereqs, @recipe) ->
         if _(@recipe).isFunction()
             @recipe = new Recipe @recipe
+        @prereqs = @prereqs.reverse()
 
 class Recipe
     constructor: (@exec = (->), @outputs = (->[])) ->

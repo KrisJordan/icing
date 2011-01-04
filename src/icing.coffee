@@ -49,6 +49,8 @@ option '-v','--verbose','Display progress as tasks are executed'
 
 # ### Dependencies and Globals
 { RuleGraph, Rule, RecipeNode } = require './rules'
+{ exec } = require 'child_process'
+
 # Preserve a reference to cake's task, we'll be using it.
 cakeTask = global.task
 
@@ -98,7 +100,7 @@ runRecipeContext = (graph, recipeNode,  runNextRecipeCallback, options) ->
     failedFn = (message) -> runNextRecipeCallback false, { target: recipeNode.name, message: message }
 
     execFn = (commands) ->
-        if not commands instanceof Array
+        if not commands.shift?
             commands = [commands]
 
         runNextCommandCallback = ->
@@ -115,10 +117,13 @@ runRecipeContext = (graph, recipeNode,  runNextRecipeCallback, options) ->
                         failedFn()
             else
                 finishedFn()
+        
+        do runNextCommandCallback
 
     return {
         callback:   runNextRecipeCallback
         finished:   finishedFn
         failed:     failedFn
         prereqs:    recipeNode.prereqs graph
+        exec:       execFn
     }
