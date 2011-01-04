@@ -34,7 +34,7 @@ class RuleGraph extends Graph
         rule.prereqs.forEach (prereq) ->
             input = new FileNode prereq
             graph.node input
-
+            graph.arc input.name, target.name
         this
 
 class Rule

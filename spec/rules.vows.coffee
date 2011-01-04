@@ -39,7 +39,7 @@ vows
             topic: (graph) -> graph.arcs.items
             'of length 1, from A to B': (arcs) ->
                 assert.length arcs, 1
-                assert.equal arcs[0].from, 'A'
-                assert.equal arcs[0].to, 'B'
+                assert.equal arcs[0].from.name, 'A'
+                assert.equal arcs[0].to.name, 'B'
 )
 .export(module)
