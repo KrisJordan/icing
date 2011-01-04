@@ -42,10 +42,18 @@ class RuleGraph extends Graph
                 graph.node input
             graph.arc input.name, target.name
 
+        outputs = rule.recipe.outputs.call rule
+        outputs.forEach (output) ->
+            output = new FileNode output
+            graph.node output
+            graph.arc target.name, output.name
+
         this
 
 class Rule
     constructor: (@target, @prereqs, @recipe) ->
+        if _(@recipe).isFunction()
+            @recipe = new Recipe @recipe
         
 class RecipeNode extends Node
     constructor: (@name, @recipe) ->
