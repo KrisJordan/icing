@@ -2,7 +2,7 @@ require './src/icing'
 
 option '-s','--spec','Run vows with spec option'
 
-task 'test', 'Run icing tests', (options) ->
+task 'test', (options) ->
     args = []
     if options.spec?
         args.push '--spec'

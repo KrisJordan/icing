@@ -42,6 +42,8 @@
 #     require 'icing'
 #     task 'B', 'run B', -> console.log 'B'
 #     task 'A', 'run A', ['B'], -> console.log 'A'
+#
+# Recipes' *this* context provides special 
 
 # ### Options
 option '-v','--verbose','Display progress as tasks are executed'
@@ -56,7 +58,12 @@ cakeTask = global.task
 
 graph = new RuleGraph
 
-global.task = (target, description, prereqs, recipe=undefined) ->
+global.task = (target, description, prereqs=undefined, recipe=undefined) ->
+    if not prereqs? and not recipe?
+        recipe = description
+        description = target
+        prereqs = []
+
     if not recipe?
         recipe = prereqs
         prereqs = []
@@ -68,6 +75,8 @@ global.task = (target, description, prereqs, recipe=undefined) ->
     cakeTask target, description, (options) ->
         recipeNodes = graph.recipeNodesTo target
         aRecipeRan = false
+        allRecipesRan = false
+        recipeNode = {}
         runNextRecipeCallback = ( ok = true, report = {} ) ->
             if not ok
                 console.error "===== #{report.rule.target} Failed ====="
@@ -84,11 +93,19 @@ global.task = (target, description, prereqs, recipe=undefined) ->
                 else
                     do runNextRecipeCallback
             else
+                allRecipesRan = true
                 if not aRecipeRan
-                    # Homage to make
+                    # Homage
                     console.log "cake: Nothing to be done for `#{target}'."
 
         do runNextRecipeCallback
+
+        process.on 'exit', ->
+            if not allRecipesRan and not recipeNodes.isEmpty()
+                tasksLeft = recipeNodes.pluck('name').join(',')
+                console.error  "\nError: task `#{recipeNode.name}` did not complete.\n" +
+                               "Tasks [#{tasksLeft}] should have run, but did not.\n" +
+                               "Task `#{recipeNode.name}` should call this.finished() or this.failed(message).\n"
 
 #### Helpers
 
