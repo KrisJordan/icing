@@ -68,5 +68,17 @@ vows
                 assert.length files.items, 2
             'containing C': (files) ->
                 assert.includes (files.pluck 'name'), 'C'
+        'has 2 arcs':
+            topic: (graph) -> graph.arcs
+            'of length 2': (arcs) ->
+                assert.length arcs.items, 2
+            'from A,B': (arcs) ->
+                from = _(arcs.pluck 'from').pluck 'name'
+                ['A','B'].forEach (item) ->
+                    assert.includes from, item
+            'to B,C': (arcs) ->
+                to = _(arcs.pluck 'to').pluck 'name'
+                ['B','C'].forEach (item) ->
+                    assert.includes to, item
 )
 .export(module)
