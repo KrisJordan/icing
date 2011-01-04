@@ -6,7 +6,7 @@ task 'test', 'Run icing tests', (options) ->
     args = []
     if options.verbose?
         args.push '--spec'
-    command = "vows #{args.join ' '} spec/rules.vows.coffee"
+    command = "vows #{args.join ' '} spec/*"
     if options.verbose?
         console.log "$ #{command}"
     exec command,
