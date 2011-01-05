@@ -98,6 +98,38 @@ class RecipeNode extends Node
     clone: (node) -> new RecipeNode @name, @recipe
     prereqs: (graph) -> graph.arcs.to(graph.node this.name).from().ofType FileNode
     outputs: (graph) -> graph.arcs.from(graph.node this.name).to().ofType FileNode
+    modifiedPrereqs: (graph) ->
+        prereqs = this.prereqs graph
+        outputs = this.outputs graph
+        if prereqs.isEmpty() or outputs.isEmpty() then return prereqs
+
+        # There are file inputs and outputs. If there is the same number of inputs
+        # as outputs we take a special case and compare them 1 by 1. If there are
+        # a different number of inputs and outputs we check to see if the greatest
+        # modified time of the inputs is greater than the oldest output. If so we
+        # should run.
+        if prereqs.count() == outputs.count()
+            return new NodeList _(_.zip prereqs.items,outputs.items)
+                .chain()
+                .map((pair) ->
+                    [input,output] = pair
+                    inputTime = input.mtime || Date.now()
+                    outputTime = output.mtime || 0
+                    if inputTime > outputTime
+                        input
+                    else
+                        false
+                )
+                .compact()
+                .value()
+        else
+            prereqMax = _(prereqs.items).max (fileNode) -> fileNode.mtime ||= Date.now()
+            outputMin = _(outputs.items).min (fileNode) -> fileNode.mtime ||= 0
+            if prereqMax.mtime > outputMin.mtime
+                return prereqs
+            else
+                return new NodeList
+
     shouldRun: (graph) ->
         prereqs = this.prereqs graph
         # Recipes without prereqs always run
@@ -107,18 +139,7 @@ class RecipeNode extends Node
         # Recipes without file outputs always run
         if outputs.isEmpty() then return true
 
-        # There are file inputs and outputs. If there is the same number of inputs
-        # as outputs we take a special case and compare them 1 by 1. If there are
-        # a different number of inputs and outputs we check to see if the greatest
-        # modified time of the inputs is greater than the oldest output. If so we
-        # should run.
-        if prereqs.count() == outputs.count()
-            # TODO: special case
-            return true
-        else
-            prereqMax = _(prereqs.items).max (fileNode) -> fileNode.mtime || Date.now()
-            outputMin = _(outputs.items).min (fileNode) -> fileNode.mtime || 0
-            return prereqMax.mtime > outputMin.mtime
+        return not this.modifiedPrereqs(graph).isEmpty()
 
     run: (context, options) -> @recipe.exec.call context, options
 

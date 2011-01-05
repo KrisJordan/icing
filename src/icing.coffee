@@ -78,6 +78,7 @@ global.task = (target, description, prereqs=undefined, recipe=undefined) ->
 
     # Bootstrap into cake's task book keeping
     cakeTask target, description, (options) ->
+        # TODO add watch support
         recipeNodes = graph.recipeNodesTo target
         aRecipeRan = false
         allRecipesRan = false
@@ -143,9 +144,10 @@ runRecipeContext = (graph, recipeNode,  runNextRecipeCallback, options) ->
         do runNextCommandCallback
 
     return {
-        callback:   runNextRecipeCallback
-        finished:   finishedFn
-        failed:     failedFn
-        prereqs:    recipeNode.prereqs(graph).names()
-        exec:       execFn
+        callback:           runNextRecipeCallback
+        finished:           finishedFn
+        failed:             failedFn
+        prereqs:            recipeNode.prereqs(graph).names()
+        modifiedPrereqs:    recipeNode.modifiedPrereqs(graph).names()
+        exec:               execFn
     }
