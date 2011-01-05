@@ -9,7 +9,9 @@ task 'test', ['spec/*'], (options) ->
         if options.spec?
             args.push '--spec'
         command = "vows #{args.join ' '} #{this.prereqs.join(' ')}"
-        this.exec command
+        this.exec [
+            command
+        ]
 
 task 'docs', 'Generate docco documentation', ['src/*'],
     exec: (options) ->
@@ -21,3 +23,8 @@ task 'docs', 'Generate docco documentation', ['src/*'],
             prereq.replace /src\/(.*).coffee/,"docs/$1.html"
 
 task 'all', 'Test and Document', ['test','docs'], (options) -> this.finished()
+
+task 'clean', 'Remove Generated Files', [], ->
+    this.exec [
+        "rm -rf docs/*"
+    ]

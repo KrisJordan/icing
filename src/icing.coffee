@@ -115,7 +115,7 @@ global.task = (target, description, prereqs=undefined, recipe=undefined) ->
 
 #### Helpers
 
-# Set-up the context that a recipe exec is run in.
+# Set-up the context that a recipe exec is run in
 runRecipeContext = (graph, recipeNode,  runNextRecipeCallback, options) ->
 
     finishedFn = -> do runNextRecipeCallback
