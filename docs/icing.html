@@ -111,6 +111,9 @@ task 'A', 'run A', ['B'], -&gt; console.log 'A'
 
         <span class="k">if</span> <span class="nx">options</span><span class="p">.</span><span class="nx">watch</span><span class="o">?</span>
             <span class="nv">fileSources = </span><span class="nx">graph</span><span class="p">.</span><span class="nx">fileSources</span><span class="p">(</span><span class="nx">target</span><span class="p">).</span><span class="nx">names</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nx">fileSources</span><span class="p">.</span><span class="nx">length</span> <span class="o">==</span> <span class="mi">0</span>
+                <span class="nx">console</span><span class="p">.</span><span class="nx">error</span> <span class="nx">stylize</span> <span class="s2">&quot;Nothing to watch.&quot;</span><span class="p">,</span> <span class="s1">&#39;red&#39;</span>
+
             <span class="nx">fileSources</span><span class="p">.</span><span class="nx">forEach</span> <span class="nf">(file) -&gt;</span>
                 <span class="nx">fs</span><span class="p">.</span><span class="nx">watchFile</span> <span class="nx">file</span><span class="p">,</span> <span class="p">{</span><span class="nx">interval</span><span class="o">:</span><span class="mi">250</span><span class="p">},</span> <span class="nf">(curr,prev) -&gt;</span>
                     <span class="k">if</span> <span class="nx">taskIsRunning</span> <span class="k">then</span> <span class="k">return</span>

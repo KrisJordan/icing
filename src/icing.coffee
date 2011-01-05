@@ -118,12 +118,15 @@ global.task = (target, description, prereqs=undefined, recipe=undefined) ->
                     allRecipesProcessed = true
                     if not aRecipeRan and options.verbose?
                         # Homage
-                        console.log "cake: Nothing to be done for `#{target}'."
+                        console.error stylize "cake: Nothing to be done for `#{target}'.", 'yellow'
                     taskIsRunning = false
             do runNextRecipeCallback
 
         if options.watch?
             fileSources = graph.fileSources(target).names()
+            if fileSources.length == 0
+                console.error stylize "cake: Nothing to watch for `#{target}'", 'yellow'
+
             fileSources.forEach (file) ->
                 fs.watchFile file, {interval:250}, (curr,prev) ->
                     if taskIsRunning then return
