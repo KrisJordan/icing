@@ -25,6 +25,15 @@ assert                          = require 'assert'
 fs                              = require 'fs'
 
 class RuleGraph extends Graph
+
+    refresh: (file) ->
+        do this.nodeMap[file].refresh
+    
+    fileSources: (target) ->
+        this.subgraph(target)
+            .sources()
+            .ofType FileNode
+
     recipeNodesTo: (target) ->
         this.subgraph(target)
             .topologicalOrdering()
@@ -98,6 +107,8 @@ class RecipeNode extends Node
     clone: (node) -> new RecipeNode @name, @recipe
     prereqs: (graph) -> graph.arcs.to(graph.node this.name).from().ofType FileNode
     outputs: (graph) -> graph.arcs.from(graph.node this.name).to().ofType FileNode
+    refreshOutputs: (graph) ->
+        this.outputs(graph).forEach (fileNode) -> fileNode.refresh()
     modifiedPrereqs: (graph) ->
         prereqs = this.prereqs graph
         outputs = this.outputs graph
@@ -144,16 +155,17 @@ class RecipeNode extends Node
     run: (context, options) -> @recipe.exec.call context, options
 
 class FileNode extends Node
-    constructor: (@name) ->
+    constructor: (@name) -> this.refresh()
+    equals: (node) ->
+        super(node) && node instanceof FileNode
+    clone: (node) -> new FileNode @name
+    refresh: ->
         try
             @stats = fs.statSync @name
             @mtime = @stats.mtime
         catch Error
             @stats = {}
             @mtime = undefined
-    equals: (node) ->
-        super(node) && node instanceof FileNode
-    clone: (node) -> new FileNode @name
 
 #### Exports 
 _(exports).extend { RuleGraph, Rule, RecipeNode, FileNode, Recipe }

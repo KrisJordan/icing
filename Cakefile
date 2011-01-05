@@ -15,9 +15,7 @@ task 'test', ['spec/*'], (options) ->
 
 task 'docs', 'Generate docco documentation', ['src/*'],
     exec: (options) ->
-        modified = this.modifiedPrereqs
-        console.log modified
-        this.exec "docco #{modified.join(' ')}"
+        this.exec "docco #{this.modifiedPrereqs.join(' ')}"
     outputs: ->
         for prereq in this.prereqs
             prereq.replace /src\/(.*).coffee/,"docs/$1.html"

@@ -46,12 +46,13 @@
 # Recipes' *this* context provides special 
 
 # ### Options
-option '-v','--verbose','Display progress as tasks are executed'
-# coming soon - option '-w','--watch','Monitor files for changes and automatically rebuild'
+option '-v',    '--verbose',    'Display progress as tasks are executed'
+option '-w',    '--watch',      'Monitor files for changes and automatically rebuild'
 
 # ### Dependencies and Globals
 { RuleGraph, Rule, RecipeNode } = require './rules'
-{ exec } = require 'child_process'
+{ exec }                        = require 'child_process'
+fs                              = require 'fs'
 
 # Preserve a reference to cake's task, we'll be using it.
 cakeTask = global.task
@@ -76,42 +77,69 @@ global.task = (target, description, prereqs=undefined, recipe=undefined) ->
     # Add a rule to the rule graph.
     graph.rule new Rule target, prereqs, recipe
 
-    # Bootstrap into cake's task book keeping
+    # Bootstrap into cake's task book keeping!
     cakeTask target, description, (options) ->
-        # TODO add watch support
-        recipeNodes = graph.recipeNodesTo target
+        # Runtime State
+        taskIsRunning = false
+        recipeNodes = { isEmpty: -> true }
         aRecipeRan = false
-        allRecipesRan = false
+        allRecipesProcessed = false
         recipeNode = {}
-        runNextRecipeCallback = ( ok = true, report = {} ) ->
-            if not ok
-                console.error "===== #{report.target} Failed ====="
-                console.error report.message
-                process.exit 1
 
-            if not recipeNodes.isEmpty()
-                recipeNode = recipeNodes.shift()
 
-                if recipeNode.shouldRun graph
-                    context = runRecipeContext graph, recipeNode, runNextRecipeCallback, options
-                    recipeNode.run context, options
-                    aRecipeRan = true
+        runTask = ->
+            taskIsRunning = true
+            recipeNodes = graph.recipeNodesTo target
+            aRecipeRan = false
+            allRecipesProcessed = false
+            recipeNode = {}
+            runNextRecipeCallback = ( ok = true, report = {} ) ->
+                if not ok
+                    console.error stylize "===== #{report.target} Task Failed =====", 'red'
+                    console.error stylize report.message, 'red'
+                    if options.watch?
+                        taskIsRunning = false
+                        return
+                    process.exit 1
+
+                if not recipeNodes.isEmpty()
+                    if recipeNode.name?
+                        recipeNode.refreshOutputs graph
+
+                    recipeNode = recipeNodes.shift()
+
+                    if recipeNode.shouldRun graph
+                        context = runRecipeContext graph, recipeNode, runNextRecipeCallback, options
+                        recipeNode.run context, options
+                        aRecipeRan = true
+                    else
+                        do runNextRecipeCallback
                 else
-                    do runNextRecipeCallback
-            else
-                allRecipesRan = true
-                if not aRecipeRan
-                    # Homage
-                    console.log "cake: Nothing to be done for `#{target}'."
+                    allRecipesProcessed = true
+                    if not aRecipeRan and options.verbose?
+                        # Homage
+                        console.log "cake: Nothing to be done for `#{target}'."
+                    taskIsRunning = false
+            do runNextRecipeCallback
 
-        do runNextRecipeCallback
+        if options.watch?
+            fileSources = graph.fileSources(target).names()
+            fileSources.forEach (file) ->
+                fs.watchFile file, {interval:250}, (curr,prev) ->
+                    if taskIsRunning then return
+                    if curr.mtime > prev.mtime
+                        console.log stylize "! `#{file}` Changed", 'green'
+                        graph.refresh file
+                        do runTask
 
         process.on 'exit', ->
-            if not allRecipesRan and not recipeNodes.isEmpty()
+            if not allRecipesProcessed and not recipeNodes.isEmpty()
                 tasksLeft = recipeNodes.pluck('name').join(',')
                 console.error  "\nError: task `#{recipeNode.name}` did not complete.\n" +
                                "Tasks [#{tasksLeft}] should have run, but did not.\n" +
                                "Task `#{recipeNode.name}` should call this.finished() or this.failed(message).\n"
+
+        do runTask
 
 #### Helpers
 
@@ -130,7 +158,7 @@ runRecipeContext = (graph, recipeNode,  runNextRecipeCallback, options) ->
             if commands.length > 0
                 command = do commands.shift
                 if options.verbose?
-                    console.log "$ #{command}"
+                    console.log stylize "$ #{command}", 'grey'
                 exec command, (error, stdout, stderr) ->
                     if options.verbose? and stdout != ''
                         console.log stdout
@@ -151,3 +179,17 @@ runRecipeContext = (graph, recipeNode,  runNextRecipeCallback, options) ->
         modifiedPrereqs:    recipeNode.modifiedPrereqs(graph).names()
         exec:               execFn
     }
+
+# Stylize function courtesy of vows.js
+stylize = (str, style) ->
+    styles =
+        'bold'      : [1,  22]
+        'italic'    : [3,  23]
+        'underline' : [4,  24]
+        'cyan'      : [96, 39]
+        'yellow'    : [33, 39]
+        'green'     : [32, 39]
+        'red'       : [31, 39]
+        'grey'      : [90, 39]
+        'green-hi'  : [92, 32]
+    "\033[#{styles[style][0]}m#{str}\033[#{styles[style][1]}m"

@@ -1,4 +1,4 @@
-<!DOCTYPE html>  <html> <head>   <title>rules.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="dag.html">                 dag.coffee               </a>                                           <a class="source" href="icing.html">                 icing.coffee               </a>                                           <a class="source" href="rules.html">                 rules.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               rules.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p><strong>rules</strong> models task pipelines using directed acyclic graph (<strong>dag.coffee</strong>) primitives.
+<!DOCTYPE html>  <html> <head>   <title>rules.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               rules.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p><strong>rules</strong> models task pipelines using directed acyclic graph (<strong>dag.coffee</strong>) primitives.
 Following in the heritage of <em>make</em>, rules have a target, prerequisites, and a recipe.
 Unlike <em>make</em> target is a symbolic name and prerequisites can refer to other rules or to
 files on disk.</p>
@@ -24,6 +24,15 @@ if they exist.</p>             </td>             <td class="code">              
 <span class="nv">fs                              = </span><span class="nx">require</span> <span class="s1">&#39;fs&#39;</span>
 
 <span class="k">class</span> <span class="nx">RuleGraph</span> <span class="k">extends</span> <span class="nx">Graph</span>
+
+    <span class="nv">refresh: </span><span class="nf">(file) -&gt;</span>
+        <span class="nx">do</span> <span class="k">this</span><span class="p">.</span><span class="nx">nodeMap</span><span class="p">[</span><span class="nx">file</span><span class="p">].</span><span class="nx">refresh</span>
+    
+    <span class="nv">fileSources: </span><span class="nf">(target) -&gt;</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">subgraph</span><span class="p">(</span><span class="nx">target</span><span class="p">)</span>
+            <span class="p">.</span><span class="nx">sources</span><span class="p">()</span>
+            <span class="p">.</span><span class="nx">ofType</span> <span class="nx">FileNode</span>
+
     <span class="nv">recipeNodesTo: </span><span class="nf">(target) -&gt;</span>
         <span class="k">this</span><span class="p">.</span><span class="nx">subgraph</span><span class="p">(</span><span class="nx">target</span><span class="p">)</span>
             <span class="p">.</span><span class="nx">topologicalOrdering</span><span class="p">()</span>
@@ -82,6 +91,8 @@ those FileNode outputs and not the RecipeNode itself.</p>             </td>     
     <span class="nv">clone: </span><span class="nf">(node) -&gt;</span> <span class="k">new</span> <span class="nx">RecipeNode</span> <span class="nx">@name</span><span class="p">,</span> <span class="nx">@recipe</span>
     <span class="nv">prereqs: </span><span class="nf">(graph) -&gt;</span> <span class="nx">graph</span><span class="p">.</span><span class="nx">arcs</span><span class="p">.</span><span class="nx">to</span><span class="p">(</span><span class="nx">graph</span><span class="p">.</span><span class="nx">node</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span><span class="p">).</span><span class="nx">from</span><span class="p">().</span><span class="nx">ofType</span> <span class="nx">FileNode</span>
     <span class="nv">outputs: </span><span class="nf">(graph) -&gt;</span> <span class="nx">graph</span><span class="p">.</span><span class="nx">arcs</span><span class="p">.</span><span class="nx">from</span><span class="p">(</span><span class="nx">graph</span><span class="p">.</span><span class="nx">node</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span><span class="p">).</span><span class="nx">to</span><span class="p">().</span><span class="nx">ofType</span> <span class="nx">FileNode</span>
+    <span class="nv">refreshOutputs: </span><span class="nf">(graph) -&gt;</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">outputs</span><span class="p">(</span><span class="nx">graph</span><span class="p">).</span><span class="nx">forEach</span> <span class="nf">(fileNode) -&gt;</span> <span class="nx">fileNode</span><span class="p">.</span><span class="nx">refresh</span><span class="p">()</span>
     <span class="nv">modifiedPrereqs: </span><span class="nf">(graph) -&gt;</span>
         <span class="nv">prereqs = </span><span class="k">this</span><span class="p">.</span><span class="nx">prereqs</span> <span class="nx">graph</span>
         <span class="nv">outputs = </span><span class="k">this</span><span class="p">.</span><span class="nx">outputs</span> <span class="nx">graph</span>
@@ -121,15 +132,16 @@ should run.</p>             </td>             <td class="code">               <d
     <span class="nv">run: </span><span class="nf">(context, options) -&gt;</span> <span class="nx">@recipe</span><span class="p">.</span><span class="nx">exec</span><span class="p">.</span><span class="nx">call</span> <span class="nx">context</span><span class="p">,</span> <span class="nx">options</span>
 
 <span class="k">class</span> <span class="nx">FileNode</span> <span class="k">extends</span> <span class="nx">Node</span>
-    <span class="nv">constructor: </span><span class="nf">(@name) -&gt;</span>
+    <span class="nv">constructor: </span><span class="nf">(@name) -&gt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">refresh</span><span class="p">()</span>
+    <span class="nv">equals: </span><span class="nf">(node) -&gt;</span>
+        <span class="k">super</span><span class="p">(</span><span class="nx">node</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">node</span> <span class="k">instanceof</span> <span class="nx">FileNode</span>
+    <span class="nv">clone: </span><span class="nf">(node) -&gt;</span> <span class="k">new</span> <span class="nx">FileNode</span> <span class="nx">@name</span>
+    <span class="nv">refresh: </span><span class="o">-&gt;</span>
         <span class="k">try</span>
             <span class="vi">@stats = </span><span class="nx">fs</span><span class="p">.</span><span class="nx">statSync</span> <span class="nx">@name</span>
             <span class="vi">@mtime = </span><span class="nx">@stats</span><span class="p">.</span><span class="nx">mtime</span>
         <span class="k">catch</span> <span class="nb">Error</span>
             <span class="vi">@stats = </span><span class="p">{}</span>
-            <span class="vi">@mtime = </span><span class="kc">undefined</span>
-    <span class="nv">equals: </span><span class="nf">(node) -&gt;</span>
-        <span class="k">super</span><span class="p">(</span><span class="nx">node</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">node</span> <span class="k">instanceof</span> <span class="nx">FileNode</span>
-    <span class="nv">clone: </span><span class="nf">(node) -&gt;</span> <span class="k">new</span> <span class="nx">FileNode</span> <span class="nx">@name</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <h3>Exports</h3>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">_</span><span class="p">(</span><span class="nx">exports</span><span class="p">).</span><span class="nx">extend</span> <span class="p">{</span> <span class="nx">RuleGraph</span><span class="p">,</span> <span class="nx">Rule</span><span class="p">,</span> <span class="nx">RecipeNode</span><span class="p">,</span> <span class="nx">FileNode</span><span class="p">,</span> <span class="nx">Recipe</span> <span class="p">}</span>
+            <span class="vi">@mtime = </span><span class="kc">undefined</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <h3>Exports</h3>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">_</span><span class="p">(</span><span class="nx">exports</span><span class="p">).</span><span class="nx">extend</span> <span class="p">{</span> <span class="nx">RuleGraph</span><span class="p">,</span> <span class="nx">Rule</span><span class="p">,</span> <span class="nx">RecipeNode</span><span class="p">,</span> <span class="nx">FileNode</span><span class="p">,</span> <span class="nx">Recipe</span> <span class="p">}</span>
 
 </pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
