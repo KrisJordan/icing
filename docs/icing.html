@@ -74,7 +74,7 @@ task 'A', 'run A', ['B'], -&gt; console.log 'A'
         <span class="nv">recipeNode = </span><span class="p">{}</span>
         <span class="nv">runNextRecipeCallback = </span><span class="nf">( ok = true, report = {} ) -&gt;</span>
             <span class="k">if</span> <span class="o">not</span> <span class="nx">ok</span>
-                <span class="nx">console</span><span class="p">.</span><span class="nx">error</span> <span class="s2">&quot;===== #{report.rule.target} Failed =====&quot;</span>
+                <span class="nx">console</span><span class="p">.</span><span class="nx">error</span> <span class="s2">&quot;===== #{report.target} Failed =====&quot;</span>
                 <span class="nx">console</span><span class="p">.</span><span class="nx">error</span> <span class="nx">report</span><span class="p">.</span><span class="nx">message</span>
                 <span class="nx">process</span><span class="p">.</span><span class="nx">exit</span> <span class="mi">1</span>
 

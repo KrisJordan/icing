@@ -84,7 +84,7 @@ global.task = (target, description, prereqs=undefined, recipe=undefined) ->
         recipeNode = {}
         runNextRecipeCallback = ( ok = true, report = {} ) ->
             if not ok
-                console.error "===== #{report.rule.target} Failed ====="
+                console.error "===== #{report.target} Failed ====="
                 console.error report.message
                 process.exit 1
 

@@ -22,6 +22,7 @@
 _                               = require 'underscore'
 assert                          = require 'assert'
 { globSync }                    = require 'glob'
+fs                              = require 'fs'
 
 class RuleGraph extends Graph
     recipeNodesTo: (target) ->
@@ -36,6 +37,19 @@ class RuleGraph extends Graph
 
         target = new RecipeNode rule.target, rule.recipe
         graph.node target
+
+        # Glob Prereqs
+        rule.prereqs = _(rule.prereqs)
+            .chain()
+            .map( (prereq) ->
+                globbed = globSync prereq
+                if globbed.length > 0
+                    globbed
+                else
+                    prereq
+            )
+            .flatten()
+            .value()
 
         rule.prereqs.forEach (prereq) ->
             # If a prereq already exists, we use it. Targets must therefore
@@ -52,19 +66,11 @@ class RuleGraph extends Graph
                         inputsOutputs.forEach (inputsOutput) ->
                             graph.arc inputsOutput.name, target.name
                         return
-                graph.arc input.name, target.name
             else
                 # see if there's an expansion for it
-                globbed = globSync prereq
-                if globbed.length > 0
-                    globbed.forEach (file) ->
-                        input = new FileNode file
-                        graph.node input
-                        graph.arc input.name, target.name
-                else
-                    input = new FileNode prereq
-                    graph.node input
-                    graph.arc input.name, target.name
+                input = new FileNode prereq
+                graph.node input
+            graph.arc input.name, target.name
 
         outputs = rule.recipe.outputs.call rule
         outputs.forEach (output) ->
@@ -91,15 +97,42 @@ class RecipeNode extends Node
         super(node) && node instanceof RecipeNode
     clone: (node) -> new RecipeNode @name, @recipe
     prereqs: (graph) -> graph.arcs.to(graph.node this.name).from().ofType FileNode
-    shouldRun: (graph) -> true
+    outputs: (graph) -> graph.arcs.from(graph.node this.name).to().ofType FileNode
+    shouldRun: (graph) ->
+        prereqs = this.prereqs graph
+        # Recipes without prereqs always run
+        if prereqs.isEmpty() then return true
+
+        outputs = this.outputs graph
+        # Recipes without file outputs always run
+        if outputs.isEmpty() then return true
+
+        # There are file inputs and outputs. If there is the same number of inputs
+        # as outputs we take a special case and compare them 1 by 1. If there are
+        # a different number of inputs and outputs we check to see if the greatest
+        # modified time of the inputs is greater than the oldest output. If so we
+        # should run.
+        if prereqs.count() == outputs.count()
+            # TODO: special case
+            return true
+        else
+            prereqMax = _(prereqs.items).max (fileNode) -> fileNode.mtime || Date.now()
+            outputMin = _(outputs.items).min (fileNode) -> fileNode.mtime || 0
+            return prereqMax.mtime > outputMin.mtime
+
     run: (context, options) -> @recipe.exec.call context, options
 
 class FileNode extends Node
     constructor: (@name) ->
+        try
+            @stats = fs.statSync @name
+            @mtime = @stats.mtime
+        catch Error
+            @stats = {}
+            @mtime = undefined
     equals: (node) ->
         super(node) && node instanceof FileNode
     clone: (node) -> new FileNode @name
-
 
 #### Exports 
 _(exports).extend { RuleGraph, Rule, RecipeNode, FileNode, Recipe }

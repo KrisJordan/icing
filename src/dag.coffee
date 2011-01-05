@@ -1,4 +1,4 @@
-# **dag** is a simple library for constructing and operating on 
+# **dag** is a simple library for working with 
 # [directed acyclic graphs](http://en.wikipedia.org/wiki/Directed_acyclic_graph).
 # Its primary purpose is to support command execution pipelines for **icing**.
 # 
@@ -17,7 +17,7 @@
 # *Disclaimer:  dag's intention is not to be a complete or robust
 # DAG library. Nor is it meant to be highly performant, just simple.*
 
-# **Dependencies** 
+# **Dependencies**
 _ = require 'underscore'
 
 #### Graph
@@ -181,6 +181,7 @@ class List
     isEmpty: -> @items.length == 0
     pop: -> do @items.pop
     shift: -> do @items.shift
+    count: -> @items.length
     pluck: (property) ->
         _(@items).pluck property
 
