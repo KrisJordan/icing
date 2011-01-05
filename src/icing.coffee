@@ -43,7 +43,13 @@
 #     task 'B', 'run B', -> console.log 'B'
 #     task 'A', 'run A', ['B'], -> console.log 'A'
 #
-# Recipes' *this* context provides special 
+# Recipes' *this* context provides helper functionality.
+#
+# TODO: Document recipe this context
+# TODO: In watch mode run from modified source rather than beginning
+# TODO: Watch mode with globbed prereqs should watch for globbed changes and rebuild
+#       graph.
+# TODO: Test with non-existant inputs.
 
 # ### Options
 option '-v',    '--verbose',    'Display progress as tasks are executed'
