@@ -49,7 +49,13 @@ task 'B', 'run B', -&gt; console.log 'B'
 task 'A', 'run A', ['B'], -&gt; console.log 'A'
 </code></pre>
 
-<p>Recipes' <em>this</em> context provides special </p>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <h3>Options</h3>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">option</span> <span class="s1">&#39;-v&#39;</span><span class="p">,</span>    <span class="s1">&#39;--verbose&#39;</span><span class="p">,</span>    <span class="s1">&#39;Display progress as tasks are executed&#39;</span>
+<p>Recipes' <em>this</em> context provides helper functionality.</p>
+
+<p>TODO: Document recipe this context
+TODO: In watch mode run from modified source rather than beginning
+TODO: Watch mode with globbed prereqs should watch for globbed changes and rebuild
+      graph.
+TODO: Test with non-existant inputs.</p>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <h3>Options</h3>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">option</span> <span class="s1">&#39;-v&#39;</span><span class="p">,</span>    <span class="s1">&#39;--verbose&#39;</span><span class="p">,</span>    <span class="s1">&#39;Display progress as tasks are executed&#39;</span>
 <span class="nx">option</span> <span class="s1">&#39;-w&#39;</span><span class="p">,</span>    <span class="s1">&#39;--watch&#39;</span><span class="p">,</span>      <span class="s1">&#39;Monitor files for changes and automatically rebuild&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <h3>Dependencies and Globals</h3>             </td>             <td class="code">               <div class="highlight"><pre><span class="p">{</span> <span class="nx">RuleGraph</span><span class="p">,</span> <span class="nx">Rule</span><span class="p">,</span> <span class="nx">RecipeNode</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s1">&#39;./rules&#39;</span>
 <span class="p">{</span> <span class="nx">exec</span> <span class="p">}</span>                        <span class="o">=</span> <span class="nx">require</span> <span class="s1">&#39;child_process&#39;</span>
 <span class="nv">fs                              = </span><span class="nx">require</span> <span class="s1">&#39;fs&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>Preserve a reference to cake's task, we'll be using it.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">cakeTask = </span><span class="nx">global</span><span class="p">.</span><span class="nx">task</span>
@@ -74,7 +80,6 @@ task 'A', 'run A', ['B'], -&gt; console.log 'A'
         <span class="nv">aRecipeRan = </span><span class="kc">false</span>
         <span class="nv">allRecipesProcessed = </span><span class="kc">false</span>
         <span class="nv">recipeNode = </span><span class="p">{}</span>
-
 
         <span class="nv">runTask = </span><span class="o">-&gt;</span>
             <span class="nv">taskIsRunning = </span><span class="kc">true</span>
@@ -105,14 +110,16 @@ task 'A', 'run A', ['B'], -&gt; console.log 'A'
                         <span class="nx">do</span> <span class="nx">runNextRecipeCallback</span>
                 <span class="k">else</span>
                     <span class="nv">allRecipesProcessed = </span><span class="kc">true</span>
-                    <span class="k">if</span> <span class="o">not</span> <span class="nx">aRecipeRan</span> <span class="o">and</span> <span class="nx">options</span><span class="p">.</span><span class="nx">verbose</span><span class="o">?</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Homage</p>             </td>             <td class="code">               <div class="highlight"><pre>                        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s2">&quot;cake: Nothing to be done for `#{target}&#39;.&quot;</span>
+                    <span class="k">if</span> <span class="o">not</span> <span class="nx">aRecipeRan</span> <span class="o">and</span> <span class="nx">options</span><span class="p">.</span><span class="nx">verbose</span><span class="o">?</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Homage</p>             </td>             <td class="code">               <div class="highlight"><pre>                        <span class="nx">console</span><span class="p">.</span><span class="nx">error</span> <span class="nx">stylize</span> <span class="s2">&quot;cake: Nothing to be done for `#{target}&#39;.&quot;</span><span class="p">,</span> <span class="s1">&#39;yellow&#39;</span>
+                    <span class="k">if</span> <span class="nx">options</span><span class="p">.</span><span class="nx">watch</span><span class="o">?</span>
+                        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">stylize</span> <span class="s2">&quot;task &#39;#{target}&#39; finished&quot;</span><span class="p">,</span><span class="s1">&#39;grey&#39;</span>
                     <span class="nv">taskIsRunning = </span><span class="kc">false</span>
             <span class="nx">do</span> <span class="nx">runNextRecipeCallback</span>
 
         <span class="k">if</span> <span class="nx">options</span><span class="p">.</span><span class="nx">watch</span><span class="o">?</span>
             <span class="nv">fileSources = </span><span class="nx">graph</span><span class="p">.</span><span class="nx">fileSources</span><span class="p">(</span><span class="nx">target</span><span class="p">).</span><span class="nx">names</span><span class="p">()</span>
             <span class="k">if</span> <span class="nx">fileSources</span><span class="p">.</span><span class="nx">length</span> <span class="o">==</span> <span class="mi">0</span>
-                <span class="nx">console</span><span class="p">.</span><span class="nx">error</span> <span class="nx">stylize</span> <span class="s2">&quot;Nothing to watch.&quot;</span><span class="p">,</span> <span class="s1">&#39;red&#39;</span>
+                <span class="nx">console</span><span class="p">.</span><span class="nx">error</span> <span class="nx">stylize</span> <span class="s2">&quot;cake: Nothing to watch for `#{target}&#39;&quot;</span><span class="p">,</span> <span class="s1">&#39;yellow&#39;</span>
 
             <span class="nx">fileSources</span><span class="p">.</span><span class="nx">forEach</span> <span class="nf">(file) -&gt;</span>
                 <span class="nx">fs</span><span class="p">.</span><span class="nx">watchFile</span> <span class="nx">file</span><span class="p">,</span> <span class="p">{</span><span class="nx">interval</span><span class="o">:</span><span class="mi">250</span><span class="p">},</span> <span class="nf">(curr,prev) -&gt;</span>
@@ -150,7 +157,7 @@ task 'A', 'run A', ['B'], -&gt; console.log 'A'
                     <span class="k">if</span> <span class="o">not</span> <span class="nx">error</span><span class="o">?</span>
                         <span class="nx">runNextCommandCallback</span><span class="p">()</span>
                     <span class="k">else</span>
-                        <span class="nx">failedFn</span><span class="p">()</span>
+                        <span class="nx">failedFn</span><span class="p">(</span><span class="nx">stderr</span><span class="p">)</span>
             <span class="k">else</span>
                 <span class="nx">finishedFn</span><span class="p">()</span>
         

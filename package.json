@@ -1,0 +1,15 @@
+{
+  "name":           "icing",
+  "description":    "Dependency management for cake command.",
+  "keywords":       ["cake","dependency","build","watch"],
+  "version":        "0.1.0",
+  "repository":     "git://github.com/KrisJordan/icing.git",
+  "author":         "Kris Jordan",
+  "directories":    {
+    "lib":          "./lib",
+    "doc":          "./doc"
+  },
+  "engines":        {
+    "node":         ">=0.2.5"
+  }
+}

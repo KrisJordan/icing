@@ -92,7 +92,6 @@ global.task = (target, description, prereqs=undefined, recipe=undefined) ->
         allRecipesProcessed = false
         recipeNode = {}
 
-
         runTask = ->
             taskIsRunning = true
             recipeNodes = graph.recipeNodesTo target
@@ -125,6 +124,8 @@ global.task = (target, description, prereqs=undefined, recipe=undefined) ->
                     if not aRecipeRan and options.verbose?
                         # Homage
                         console.error stylize "cake: Nothing to be done for `#{target}'.", 'yellow'
+                    if options.watch?
+                        console.log stylize "task '#{target}' finished",'grey'
                     taskIsRunning = false
             do runNextRecipeCallback
 
@@ -174,7 +175,7 @@ runRecipeContext = (graph, recipeNode,  runNextRecipeCallback, options) ->
                     if not error?
                         runNextCommandCallback()
                     else
-                        failedFn()
+                        failedFn(stderr)
             else
                 finishedFn()
         

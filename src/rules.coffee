@@ -60,25 +60,42 @@ class RuleGraph extends Graph
             .flatten()
             .value()
 
+        rule.filePrereqs = []
+
         rule.prereqs.forEach (prereq) ->
+            # Special prereqs for specifying a dependency on a task running
+            # or on the computed outputs of a task
+            specialPrereq = prereq.match /^(task|outputs)\((.*)\)$/
+            if specialPrereq
+                kind = specialPrereq[1]
+                prereq = specialPrereq[2]
+
             # If a prereq already exists, we use it. Targets must therefore
             # always be defined prior to being referenced as prerequisites in other
             # rules.
-            if graph.node prereq
-                input = graph.node prereq
-                # There's a special case when a RecipeNode's recipe has outputs. When
-                # other RecipeNode targets have one as a prereq its dependency is on 
-                # those FileNode outputs and not the RecipeNode itself.
-                if input instanceof RecipeNode
+            input = graph.node prereq
+            if input and input instanceof RecipeNode
+                if specialPrereq == null
+                    throw new Error "Task prerequisites must be referenced with task(#{prereq}) or outputs(#{prereq})"
+                if input not instanceof RecipeNode
+                    console.error "Bad prereq: #{kind}(#{prereq}) - #{prereq} must be the name of a task"
+                    process.exit 1
+                if kind == 'outputs'
                     inputsOutputs =  graph.arcs.from(input).to().ofType(FileNode)
                     if not inputsOutputs.isEmpty()
                         inputsOutputs.forEach (inputsOutput) ->
                             graph.arc inputsOutput.name, target.name
+                            rule.filePrereqs.push inputsOutput.name
                         return
+            else if specialPrereq
+                console.error "Error: task '#{target.name}' prereq '#{kind}(#{prereq})'-'#{prereq}' is not yet defined"
+                process.exit 1
             else
                 # see if there's an expansion for it
                 input = new FileNode prereq
+                rule.filePrereqs.push prereq
                 graph.node input
+
             graph.arc input.name, target.name
 
         outputs = rule.recipe.outputs.call rule
