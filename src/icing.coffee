@@ -59,7 +59,6 @@ option '-w',    '--watch',      'Monitor files for changes and automatically reb
 { RuleGraph, Rule, RecipeNode } = require './rules'
 { exec }                        = require 'child_process'
 fs                              = require 'fs'
-cake                            = require 'coffee-script/cake'
 
 # Preserve a reference to cake's task, we'll be using it.
 cakeTask = global.task
