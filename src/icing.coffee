@@ -52,6 +52,10 @@
 # TODO: Test with non-existant inputs.
 
 # ### Options
+if not option?
+    console.error "require('icing') can only be used in Cakefiles\n"
+    process.exit 1
+
 option '-v',    '--verbose',    'Display progress as tasks are executed'
 option '-w',    '--watch',      'Monitor files for changes and automatically rebuild'
 
@@ -114,9 +118,9 @@ global.task = (target, description, prereqs=undefined, recipe=undefined) ->
                     recipeNode = recipeNodes.shift()
 
                     if recipeNode.shouldRun graph
+                        aRecipeRan = true
                         context = runRecipeContext graph, recipeNode, runNextRecipeCallback, options
                         recipeNode.run context, options
-                        aRecipeRan = true
                     else
                         do runNextRecipeCallback
                 else
