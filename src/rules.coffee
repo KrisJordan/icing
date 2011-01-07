@@ -116,7 +116,6 @@ class Rule
     constructor: (@target, @prereqs, @recipe) ->
         if _(@recipe).isFunction()
             @recipe = new Recipe @recipe
-        @prereqs = @prereqs.reverse() # Because we push they'll get reversed again
 
 class Recipe
     constructor: (@recipe = (->), @outputs = (->[])) ->
