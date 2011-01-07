@@ -49,7 +49,6 @@
 # TODO: In watch mode run from modified source rather than beginning
 # TODO: Watch mode with globbed prereqs should watch for globbed changes and rebuild
 #       graph.
-# TODO: Test with non-existant inputs.
 
 # ### Options
 if not option?
@@ -63,11 +62,13 @@ option '-w',    '--watch',      'Monitor files for changes and automatically reb
 { RuleGraph, Rule, RecipeNode } = require './rules'
 { exec }                        = require 'child_process'
 fs                              = require 'fs'
+_                               = require 'underscore'
 
-# Preserve a reference to cake's task, we'll be using it.
+# Preserve a reference to cake's task function, we'll be leveraging it.
 cakeTask = global.task
-
 graph = new RuleGraph
+icing =
+    beforeTask: (options)->
 
 global.task = (target, description, prereqs=undefined, recipe=undefined) ->
     if not prereqs? and not recipe?
@@ -89,6 +90,9 @@ global.task = (target, description, prereqs=undefined, recipe=undefined) ->
 
     # Bootstrap into cake's task book keeping!
     cakeTask target, description, (options) ->
+        # Call the pre-task hook
+        icing.beforeTask options
+
         # Runtime State
         taskIsRunning = false
         recipeNodes = { isEmpty: -> true }
@@ -125,7 +129,7 @@ global.task = (target, description, prereqs=undefined, recipe=undefined) ->
                         do runNextRecipeCallback
                 else
                     allRecipesProcessed = true
-                    if not aRecipeRan and options.verbose?
+                    if not aRecipeRan and not options.watch?
                         # Homage
                         console.error stylize "cake: Nothing to be done for `#{target}'.", 'yellow'
                     if options.watch?
@@ -139,7 +143,7 @@ global.task = (target, description, prereqs=undefined, recipe=undefined) ->
                 console.error stylize "cake: Nothing to watch for `#{target}'", 'yellow'
 
             fileSources.forEach (file) ->
-                fs.watchFile file, {interval:250}, (curr,prev) ->
+                fs.watchFile file, {interval:100}, (curr,prev) ->
                     if taskIsRunning then return
                     if curr.mtime > prev.mtime
                         console.log stylize "! `#{file}` Changed", 'green'
@@ -191,6 +195,7 @@ runRecipeContext = (graph, recipeNode,  runNextRecipeCallback, options) ->
         failed:             failedFn
         prereqs:            recipeNode.prereqs(graph).names()
         modifiedPrereqs:    recipeNode.modifiedPrereqs(graph).names()
+        outputs:            recipeNode.outputs(graph).names()
         exec:               execFn
     }
 
@@ -207,3 +212,6 @@ stylize = (str, style) ->
         'grey'      : [90, 39]
         'green-hi'  : [92, 32]
     "\033[#{styles[style][0]}m#{str}\033[#{styles[style][1]}m"
+
+#### Exports
+global.icing = icing

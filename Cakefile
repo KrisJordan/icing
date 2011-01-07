@@ -17,13 +17,13 @@ task 'test', ['spec/*','src/*'], (options) ->
         ]
 
 task 'compile', ['task(test)','src/*'],
-    exec: -> this.exec "coffee -c -o lib/ #{this.modifiedPrereqs.join(' ')}"
+    recipe: -> this.exec "coffee -c -o lib/ #{this.modifiedPrereqs.join(' ')}"
     outputs: ->
         for prereq in this.filePrereqs
             prereq.replace /src\/(.*).coffee/,"lib/$1.js"
 
 task 'docs', 'Generate docco documentation', ['src/*'],
-    exec: (options) ->
+    recipe: (options) ->
         this.exec "docco #{this.modifiedPrereqs.join(' ')}"
     outputs: ->
         for prereq in this.filePrereqs

@@ -50,13 +50,18 @@ class RuleGraph extends Graph
         # Glob Prereqs
         rule.prereqs = _(rule.prereqs)
             .chain()
+            .flatten()
             .map( (prereq) ->
-                globbed = globSync prereq
-                if globbed.length > 0
-                    globbed
+                if /\*/.test prereq
+                    globbed = globSync prereq
+                    if globbed.length > 0
+                        globbed
+                    else
+                        undefined
                 else
                     prereq
             )
+            .compact()
             .flatten()
             .value()
 
@@ -114,7 +119,7 @@ class Rule
         @prereqs = @prereqs.reverse() # Because we push they'll get reversed again
 
 class Recipe
-    constructor: (@exec = (->), @outputs = (->[])) ->
+    constructor: (@recipe = (->), @outputs = (->[])) ->
 
 #### Additional Graph Nodes
 class RecipeNode extends Node
@@ -169,7 +174,7 @@ class RecipeNode extends Node
 
         return not this.modifiedPrereqs(graph).isEmpty()
 
-    run: (context, options) -> @recipe.exec.call context, options
+    run: (context, options) -> @recipe.recipe.call context, options
 
 class FileNode extends Node
     constructor: (@name) -> this.refresh()
