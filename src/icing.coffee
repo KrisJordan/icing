@@ -190,10 +190,11 @@ runRecipeContext = (graph, recipeNode,  runNextRecipeCallback, options) ->
         do runNextCommandCallback
 
     return {
+        target:             recipeNode.name
         callback:           runNextRecipeCallback
         finished:           finishedFn
         failed:             failedFn
-        prereqs:            recipeNode.prereqs(graph).names()
+        filePrereqs:        recipeNode.prereqs(graph).names()
         modifiedPrereqs:    recipeNode.modifiedPrereqs(graph).names()
         outputs:            recipeNode.outputs(graph).names()
         exec:               execFn
