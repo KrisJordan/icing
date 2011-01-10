@@ -18,6 +18,11 @@ Cakefiles.
 2. Task should now end by calling this.finished() or
    this.failed('Error message') to signify the completion of a task.
 
+## Built-in Command Line Options
+
+    -w, --watch,  Interactively build to target as source files change
+    -v, --verbose Enable verbose output mode
+
 ## Example Cakefile
 
     task 'js:coffee', 'Compile Coffee Script', ['src/*.coffee'],
@@ -40,11 +45,6 @@ Cakefiles.
     task 'all', 'Run all tasks', ['task(js:run)'], ->
         console.log 'Done.'
         this.finished()
-
-## Built-in Command Line Options
-
-    -w, --watch,  Interactively build to target as source files change
-    -v, --verbose Enable verbose output mode
 
 ## API
 
