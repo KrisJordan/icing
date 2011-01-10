@@ -38,18 +38,18 @@ Cakefiles, the `this` context of the methods contains useful callbacks and data.
 
 `recipe`'s `this` context:
 
-    * `exec(command)` - helper function for command line edecution that can take a 
-      single string command or an array of commands. It will call the commands 
-      one-by-one and upon successful completion of all commands will automatically 
-      call the `finished` callback. Else it will call the `failed` callback.
-    * `finished()` - callback to signal successful completion of task
-    * `failed(msg)` - callback to signal unsuccessful completion of task
-    * `prereqs` - array of strings of prerequisites. Often used as inputs to commands
-      executed. In this context prereqs have already been globbed so `['src/*.coffee']`
-      could become `['src/a.coffee','src/b.coffee']`.
-    * `outputs` - array of strings resulting from calling the outputs method of the
-      recipe object.
-    * `modifiedPrereqs` - if prereqs and outputs are both defined this is
-      the list of files that have been modified more recently than their outputs.
+* `exec(command)` - helper function for command line edecution that can take a 
+   single string command or an array of commands. It will call the commands 
+   one-by-one and upon successful completion of all commands will automatically 
+   call the `finished` callback. Else it will call the `failed` callback.
+* `finished()` - callback to signal successful completion of task
+* `failed(msg)` - callback to signal unsuccessful completion of task
+* `prereqs` - array of strings of prerequisites. Often used as inputs to commands
+   executed. In this context prereqs have already been globbed so `['src/*.coffee']`
+   could become `['src/a.coffee','src/b.coffee']`.
+* `outputs` - array of strings resulting from calling the outputs method of the
+  recipe object.
+* `modifiedPrereqs` - if prereqs and outputs are both defined this is
+  the list of files that have been modified more recently than their outputs.
 
 
