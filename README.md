@@ -33,7 +33,7 @@ Cakefiles.
                 "output/#{file.replace /\//, '_'}"
         recipe: ->
             commands = for file in this.modifiedPrereqs
-                "node #{file} > output/#{file.replace /\//, '_'}"
+                "node #{file} > output/#{file.replace '/', '_'}"
             commands = ['mkdir -p output/'].concat commands
             this.exec commands
 
@@ -44,13 +44,14 @@ Cakefiles.
 ## Built-in Command Line Options
 
   -w, --watch,  Interactively build to target as source files change
+
   -v, --verbose Enable verbose output mode
 
-## Details
+## API
 
 `icing` introduces a new form of the `task` function that has four parameters:
 
-    task target, description = '', prereqs = [], recipe
+    task target, description = '', prereqs = [ ], recipe
 
 The `target` and `description` strings are unchanged from cake. `prereqs` is an
 array of strings that can refer to three different kinds of prereqs:
