@@ -1,6 +1,6 @@
 # icing
 
-`icing` adds dependency management and interactive building to CoffeeScript's `cake` 
+`icing` adds **dependency management** and **interactive building** to CoffeeScript's `cake` 
 command and Cakefiles.
 
 ## Installation
@@ -43,9 +43,8 @@ Cakefiles.
 
 ## Built-in Command Line Options
 
-  -w, --watch,  Interactively build to target as source files change
-
-  -v, --verbose Enable verbose output mode
+    -w, --watch,  Interactively build to target as source files change
+    -v, --verbose Enable verbose output mode
 
 ## API
 
