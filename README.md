@@ -90,3 +90,10 @@ callbacks and data.
 * `modifiedPrereqs` - if prereqs and outputs are both defined this is
   the list of files that have been modified more recently than their outputs.
 
+## TODO
+
+* In interactive / watch mode poll globbed locations to pick-up on new files
+  and rebuild dependency graph when detected.
+# In interactive / watch mode rather than traverse entire task set pick out
+  the subgraph between the modified source and the target to more efficiently
+  recompute large dependency graphs.

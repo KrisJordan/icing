@@ -43,12 +43,33 @@
 #     task 'B', 'run B', -> console.log 'B'
 #     task 'A', 'run A', ['B'], -> console.log 'A'
 #
-# Recipes' *this* context provides helper functionality.
+# `outputs` method's `this` context contains:
+# 
+# * `filePrereqs` - array of filenames, post-globbing, that are direct prereqs to the
+#   rule. This array is often mapped to an array of outputs.
+# * `recipe` - the object `outputs` and `recipe` methods are defined on
+# * `prereqs` - array of unprocessed prereqs
+# * `target` - the name of the task
+# 
+# `recipe` method's `this` context contains:
+# 
+# * `exec(command)` - helper method for command line edecution that can take a 
+#    single string command or an array of commands. It will call the commands 
+#    one-by-one and upon successful completion of all commands will automatically 
+#    call the `finished` callback. Else it will call the `failed` callback.
+# * `finished()` - callback to signal successful completion of task
+# * `failed(msg)` - callback to signal unsuccessful completion of task
+# * `filePrereqs` - array of strings of prerequisites. Often used as inputs to commands
+#    executed. In this context prereqs have already been globbed so `['src/*.coffee']`
+#    could become `['src/a.coffee','src/b.coffee']`.
+# * `outputs` - array of strings resulting from calling the outputs method of the
+#   recipe object.
+# * `modifiedPrereqs` - if prereqs and outputs are both defined this is
+#   the list of files that have been modified more recently than their outputs.
 #
-# TODO: Document recipe this context
-# TODO: In watch mode run from modified source rather than beginning
 # TODO: Watch mode with globbed prereqs should watch for globbed changes and rebuild
 #       graph.
+# TODO: In watch mode only rebuild from modified prereq, rather than run whole graph.
 
 # ### Options
 if not option?

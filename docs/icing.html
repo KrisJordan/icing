@@ -1,4 +1,4 @@
-<!DOCTYPE html>  <html> <head>   <title>icing.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="dag.html">                 dag.coffee               </a>                                           <a class="source" href="icing.html">                 icing.coffee               </a>                                           <a class="source" href="rules.html">                 rules.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               icing.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p><strong>icing</strong> adds dependency management to Cakefiles by extending and
+<!DOCTYPE html>  <html> <head>   <title>icing.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               icing.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p><strong>icing</strong> adds dependency management to Cakefiles by extending and
 slightly modifying cake's "task" function. Add icing to your Cakefiles by adding
 a single line:</p>
 
@@ -49,12 +49,37 @@ task 'B', 'run B', -&gt; console.log 'B'
 task 'A', 'run A', ['B'], -&gt; console.log 'A'
 </code></pre>
 
-<p>Recipes' <em>this</em> context provides helper functionality.</p>
+<p><code>outputs</code> method's <code>this</code> context contains:</p>
 
-<p>TODO: Document recipe this context
-TODO: In watch mode run from modified source rather than beginning
-TODO: Watch mode with globbed prereqs should watch for globbed changes and rebuild
-      graph.</p>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <h3>Options</h3>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">if</span> <span class="o">not</span> <span class="nx">option</span><span class="o">?</span>
+<ul>
+<li><code>filePrereqs</code> - array of filenames, post-globbing, that are direct prereqs to the
+rule. This array is often mapped to an array of outputs.</li>
+<li><code>recipe</code> - the object <code>outputs</code> and <code>recipe</code> methods are defined on</li>
+<li><code>prereqs</code> - array of unprocessed prereqs</li>
+<li><code>target</code> - the name of the task</li>
+</ul>
+
+<p><code>recipe</code> method's <code>this</code> context contains:</p>
+
+<ul>
+<li><code>exec(command)</code> - helper method for command line edecution that can take a 
+single string command or an array of commands. It will call the commands 
+one-by-one and upon successful completion of all commands will automatically 
+call the <code>finished</code> callback. Else it will call the <code>failed</code> callback.</li>
+<li><code>finished()</code> - callback to signal successful completion of task</li>
+<li><code>failed(msg)</code> - callback to signal unsuccessful completion of task</li>
+<li><code>filePrereqs</code> - array of strings of prerequisites. Often used as inputs to commands
+executed. In this context prereqs have already been globbed so <code>['src/*.coffee']</code>
+could become <code>['src/a.coffee','src/b.coffee']</code>.</li>
+<li><code>outputs</code> - array of strings resulting from calling the outputs method of the
+recipe object.</li>
+<li><code>modifiedPrereqs</code> - if prereqs and outputs are both defined this is
+the list of files that have been modified more recently than their outputs.</li>
+</ul>
+
+<p>TODO: Watch mode with globbed prereqs should watch for globbed changes and rebuild
+      graph.
+TODO: In watch mode only rebuild from modified prereq, rather than run whole graph.</p>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <h3>Options</h3>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">if</span> <span class="o">not</span> <span class="nx">option</span><span class="o">?</span>
     <span class="nx">console</span><span class="p">.</span><span class="nx">error</span> <span class="s2">&quot;require(&#39;icing&#39;) can only be used in Cakefiles\n&quot;</span>
     <span class="nx">process</span><span class="p">.</span><span class="nx">exit</span> <span class="mi">1</span>
 

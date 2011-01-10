@@ -2,7 +2,7 @@
   "name":           "icing",
   "description":    "Dependency management for cake command.",
   "keywords":       ["cake","dependency","build","watch"],
-  "version":        "0.3-pre",
+  "version":        "0.3",
   "repository":     "git://github.com/KrisJordan/icing.git",
   "author":         "Kris Jordan",
   "directories":    {
