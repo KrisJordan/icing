@@ -33,13 +33,13 @@ testGraph = (options) ->
     focus.topic = graphFromMap options.graph
     
     focus["has #{options.nodes.length} nodes: [#{options.nodes.join(',')}]"] = (graph) ->
-        assert.length graph.nodes.items, options.nodes.length
+        assert.lengthOf graph.nodes.items, options.nodes.length
         actualNodes = graph.nodes.pluck 'name'
         options.nodes.forEach (node) ->
             assert.include actualNodes, node
 
     focus["has #{options.arcs} arcs"] = (graph) ->
-        assert.length graph.arcs.items, options.arcs
+        assert.lengthOf graph.arcs.items, options.arcs
 
     focus["does #{ if not options.hasCycle then "not " else "" }have a cycle"] = (graph) ->
         assert.equal graph.hasCycle(), options.hasCycle
@@ -51,7 +51,7 @@ testGraph = (options) ->
     if options.sources?
         focus["has sources of length #{options.sources.length} containing [#{options.sources.join ','}]"] = (graph) ->
             sources = graph.sources().pluck 'name'
-            assert.length sources, options.sources.length
+            assert.lengthOf sources, options.sources.length
             options.sources.forEach (source) ->
                 assert.include sources, source
 
@@ -133,7 +133,7 @@ vows
         'has a node list':
             topic: (graph) -> graph.nodes
             'with one element': (nodes) ->
-                assert.length nodes.items, 1
+                assert.lengthOf nodes.items, 1
 )
 .export(module)
 
@@ -143,7 +143,7 @@ vows
     'A List':
         topic: new List
         'has no nodes': (list) ->
-            assert.length list.items, 0
+            assert.lengthOf list.items, 0
 )
 .export(module)
 
