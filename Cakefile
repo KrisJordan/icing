@@ -11,7 +11,7 @@ task 'test', ['spec/*','src/*'], (options) ->
             args.push '--spec'
         tests = _(this.modifiedPrereqs).filter (prereq) -> prereq.match /^spec/
         src = _(this.modifiedPrereqs).filter (prereq) -> prereq.match /^src/
-        command = "vows #{args.join ' '} #{tests.join(' ')}"
+        command = "./node_modules/vows/bin/vows #{args.join ' '} #{tests.join(' ')}"
         this.exec [
             command
         ]
