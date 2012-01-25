@@ -21,7 +21,7 @@
 { Graph, Node, Arc, NodeList }  = require './dag'
 _                               = require 'underscore'
 assert                          = require 'assert'
-{ globSync }                    = require 'glob'
+globSync                  = require( 'glob').sync
 fs                              = require 'fs'
 
 class RuleGraph extends Graph
